@@ -133,7 +133,7 @@ const SUPABASE_URL='https://yebmefxppbmlqrbiaeez.supabase.co';
 const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InllYm1lZnhwcGJtbHFyYmlhZWV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDA2OTAsImV4cCI6MjA5NzM3NjY5MH0.gJxTylVVg5e1_GcpG4z4UqHQDwKJSPszK9u8XshAGdA';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-/* characters: drop PNGs in ./sprites/<id>.png. Selectable = pickable at character select. */
+/* characters: drop PNGs in ././<id>.png. Selectable = pickable at character select. */
 const CHARACTERS = [
   {id:'black_pirate',name:'Pirate'},{id:'grey_ninja',name:'Ninja'},
   {id:'white_royal',name:'Royal (White)'},{id:'grey_royal',name:'Royal (Grey)'},
@@ -180,7 +180,7 @@ function dateLabel(){const d=new Date();return `${d.getMonth()+1}/${d.getDate()}
 /* avatar element */
 function avatar(p, size){
   const cls=size?(' '+size):'';
-  const sprite=p.sprite?`<img src="sprites/${p.sprite}.png" onerror="this.style.display='none';this.parentNode.textContent=this.parentNode.dataset.i">`:'';
+  const sprite=p.sprite?`<img src="./${p.sprite}.png" onerror="this.style.display='none';this.parentNode.textContent=this.parentNode.dataset.i">`:'';
   const initial=(p.name||'?').slice(0,1).toUpperCase();
   return `<div class="av${cls}" data-i="${initial}" style="background:${p.color}">${sprite||initial}</div>`;
 }
@@ -220,7 +220,7 @@ async function render(screen, opt){
 function landing(){
   app.innerHTML=`<div class="center">
     <div class="av lg" style="background:linear-gradient(160deg,#9d6fd9,#5b8def);border:4px solid var(--pink);box-shadow:0 0 40px rgba(240,107,154,.5)">
-      <img src="logo.png" onerror="this.style.display='none';this.parentNode.innerHTML='<span class=pixel>RZ</span>'">
+      <img src="rz_logo.png" onerror="this.style.display='none';this.parentNode.innerHTML='<span class=pixel>RZ</span>'">
     </div>
     <div class="title">RIFT &amp; ZINGO'S<br>GAMING GAUNTLET</div>
     <div class="row" style="margin-top:10px">
@@ -259,7 +259,7 @@ function characterSelect(opt){
     <div class="field"><label>Character</label>
       <div class="charGrid" id="charGrid">
         ${CHARACTERS.map(c=>`<div class="char" data-id="${c.id}" onclick="selChar('${c.id}')">
-          <div class="av" style="background:var(--panel2)"><img src="sprites/${c.id}.png" onerror="this.style.display='none';this.parentNode.textContent='${c.name.slice(0,1)}'"></div>
+          <div class="av" style="background:var(--panel2)"><img src="./${c.id}.png" onerror="this.style.display='none';this.parentNode.textContent='${c.name.slice(0,1)}'"></div>
           <div class="nm">${c.name}${taken[c.id]?' <span style="color:var(--gold)">('+esc(taken[c.id])+')</span>':''}</div>
         </div>`).join('')}
       </div>
@@ -270,10 +270,15 @@ function characterSelect(opt){
     <div class="field" style="margin-bottom:6px"><label>Rare characters (earned only, not selectable)</label></div>
     <div class="charGrid">${ALL_RARES.map(id=>{
       const owned=ownsRare(id); const meta=S.myDrops.find(d=>d.character_id===id);
-      return `<div class="char" style="cursor:default;${owned?'':'opacity:.4;filter:grayscale(.7)'}">
-        <div class="av" style="background:var(--panel2)"><img src="sprites/${id}.png" onerror="this.style.display='none';this.parentNode.textContent='?'"></div>
-        <div class="nm">${RARE_NAMES[id]}</div>
-        ${owned&&meta?`<div class="hovwrap small" style="color:var(--gold)">earned<div class="hovtip">Roll #${meta.won_on_roll} of ${meta.roll_count}<br>${new Date(meta.created_at).toLocaleString()}</div></div>`:owned?'<div class="small" style="color:var(--gold)">earned</div>':'<div class="small muted">locked</div>'}
+      const isGauntlet=RARES_GAUNTLET.some(r=>r.id===id);
+      const hintText=isGauntlet?'Win a gauntlet to roll for this':'Win the matching game round to roll';
+      return `<div class="char" style="cursor:default;${owned?'':'opacity:.5;filter:grayscale(.8)'}">
+        ${owned?`<div class="av" style="background:var(--panel2)"><img src="./${id}.png" onerror="this.style.display='none';this.parentNode.textContent='?'"></div>
+        <div class="nm" style="color:var(--gold)">${RARE_NAMES[id]}</div>
+        <div class="hovwrap small" style="color:var(--gold)">earned<div class="hovtip">Roll #${meta?meta.won_on_roll:'?'} of ${meta?meta.roll_count:'?'}<br>${meta?new Date(meta.created_at).toLocaleString():''}</div></div>`
+        :`<div class="av" style="background:var(--panel);font-size:24px;color:var(--muted)">?</div>
+        <div class="nm muted">???</div>
+        <div class="hovwrap small muted">locked<div class="hovtip">${hintText}<br>1 in 200 chance per win</div></div>`}
       </div>`;}).join('')}</div>
   </div>`;
   S._newColor=COLORS[0]; S._newChar=null;
@@ -564,7 +569,7 @@ function dropToast(d){
   const t=document.createElement('div'); t.className='toast';
   t.style.borderColor='var(--gold)'; t.style.boxShadow='0 0 24px rgba(245,196,81,.5)';
   t.innerHTML=`<div style="display:flex;align-items:center;gap:10px">
-    <div class="av sm" style="background:var(--panel2)"><img src="sprites/${d.character_id}.png" onerror="this.style.display='none';this.parentNode.textContent='!'" style="width:100%;height:100%;border-radius:50%"></div>
+    <div class="av sm" style="background:var(--panel2)"><img src="./${d.character_id}.png" onerror="this.style.display='none';this.parentNode.textContent='!'" style="width:100%;height:100%;border-radius:50%"></div>
     <div><div style="font-weight:800;color:var(--gold)">RARE DROP</div>
     <div class="small"><b style="color:${col}">${esc(nm)}</b> unlocked ${esc(RARE_NAMES[d.character_id]||d.character_id)}</div></div></div>`;
   document.body.appendChild(t); setTimeout(()=>t.remove(),5000);
@@ -605,8 +610,8 @@ async function finishGauntlet(){
     totals:t,rounds_won:w,per_game_winners:perGame,sudden_death:false});
   await sb.from('gauntlets').update({status:'finished'}).eq('id',g.id);
   S.gauntlet.status='finished';
+  await processUnlocks(g, roundWinnersArr, tie?null:winner);
   go('result');
-  processUnlocks(g, roundWinnersArr, tie?null:winner); // toasts arrive via realtime
 }
 function resultScreen(){
   const g=S.gauntlet,t=totals(),w=roundsWon();
@@ -765,11 +770,11 @@ async function hiscoresScreen(){
   <div class="card" style="margin-top:14px"><h3 style="margin-bottom:12px">Collections</h3>
     ${S.profiles.map(p=>{const mine=(allDrops||[]).filter(d=>d.profile_id===p.id);
       return `<div style="margin-bottom:12px"><div style="font-weight:700;color:${p.color};margin-bottom:6px">${esc(p.name)} <span class="muted small">(${mine.length}/${ALL_RARES.length})</span></div>
-      <div class="row" style="justify-content:flex-start;gap:8px">${mine.length?mine.map(d=>`<div class="hovwrap"><div class="av sm" style="background:var(--panel2)"><img src="sprites/${d.character_id}.png" onerror="this.style.display='none';this.parentNode.textContent='!'"></div><div class="hovtip">${esc(RARE_NAMES[d.character_id]||d.character_id)}<br>Roll #${d.won_on_roll} of ${d.roll_count}<br>${new Date(d.created_at).toLocaleString()}</div></div>`).join(''):'<span class="muted small">none yet</span>'}</div></div>`;}).join('')}
+      <div class="row" style="justify-content:flex-start;gap:8px">${mine.length?mine.map(d=>`<div class="hovwrap"><div class="av sm" style="background:var(--panel2)"><img src="./${d.character_id}.png" onerror="this.style.display='none';this.parentNode.textContent='!'"></div><div class="hovtip">${esc(RARE_NAMES[d.character_id]||d.character_id)}<br>Roll #${d.won_on_roll} of ${d.roll_count}<br>${new Date(d.created_at).toLocaleString()}</div></div>`).join(''):'<span class="muted small">none yet</span>'}</div></div>`;}).join('')}
   </div>
   <div class="card" style="margin-top:14px"><h3 style="margin-bottom:12px">Recent drops</h3>
     ${(allDrops||[]).length?(allDrops).slice(0,25).map(d=>{const p=profById(d.profile_id);return `<div class="dropfeed-item">
-      <div class="av sm" style="background:var(--panel2)"><img src="sprites/${d.character_id}.png" onerror="this.style.display='none';this.parentNode.textContent='!'"></div>
+      <div class="av sm" style="background:var(--panel2)"><img src="./${d.character_id}.png" onerror="this.style.display='none';this.parentNode.textContent='!'"></div>
       <span><b style="color:${p?p.color:'#fff'}">${esc(p?p.name:'?')}</b> unlocked <b style="color:var(--gold)">${esc(RARE_NAMES[d.character_id]||d.character_id)}</b> on roll #${d.won_on_roll}</span>
       <span class="muted small" style="margin-left:auto">${new Date(d.created_at).toLocaleDateString()}</span></div>`;}).join(''):'<div class="muted small">No drops yet. Win games to roll.</div>'}
   </div>`;
