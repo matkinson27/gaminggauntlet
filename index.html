@@ -227,7 +227,7 @@ function ownsRare(id){ return S.myDrops.some(d=>d.character_id===id); }
 function defById(id){return S.defs.find(d=>d.id===id);}
 
 /* ============ ROUTER ============ */
-async function go(screen, opt){ S.screen=screen; if(screen!=='board')removeChat(); render(screen, opt||{}); }
+async function go(screen, opt){ S.screen=screen; if(!S.gauntlet||screen==='landing'||screen==='character'||screen==='setup'||screen==='hiscores')removeChat(); render(screen, opt||{}); }
 async function render(screen, opt){
   if(screen==='landing') return landing();
   if(screen==='character') return characterSelect(opt);
@@ -380,10 +380,22 @@ function renderSlots(){
   area.innerHTML=`<div class="field"><label>Players (slot 1 is you)</label>${
     setup.slots.map((sid,i)=>`<div class="row" style="justify-content:flex-start;margin-bottom:8px">
       <span class="muted small" style="width:50px">P${i+1}</span>
-      <select onchange="setup.slots[${i}]=this.value" style="max-width:240px">
+      <select onchange="setup.slots[${i}]=this.value;renderHC()" style="max-width:240px">
         <option value="">- choose -</option>${opts(sid)}
       </select></div>`).join('')}</div>
     <div class="muted small" style="margin-top:-6px">Need a profile that isn't listed? Create it from the character screen first.</div>`;
+  renderHC();
+}
+function renderHC(){
+  const hc=$('#cs2hc'); if(!hc)return;
+  const named=setup.slots.filter(s=>s).map(profById).filter(Boolean);
+  if(named.length<2){hc.innerHTML='';return;}
+  hc.innerHTML=`<details style="margin-bottom:14px"><summary style="cursor:pointer;color:var(--muted);font-size:13px;font-weight:700">CS2 handicap (optional)</summary>
+    <div style="margin-top:8px">${named.map(p=>`<div class="row" style="justify-content:flex-start;margin-bottom:6px">
+      <span class="small" style="width:110px;color:${p.color};font-weight:700">${esc(p.name)}</span>
+      <input type="number" style="width:100px" value="${setup.handicaps[p.id]||0}" oninput="setup.handicaps['${p.id}']=+this.value" placeholder="0">
+    </div>`).join('')}
+    <div class="muted small">Flat bonus added to damage before scaling. 0 = none.</div></div></details>`;
 }
 function pool(){ return S.defs.filter(d=>setup.switch||!d.is_switch); }
 function beginSelection(){
@@ -463,6 +475,12 @@ async function openGauntlet(id){
     })
     .on('postgres_changes',{event:'UPDATE',schema:'public',table:'gauntlets',filter:'id=eq.'+id},payload=>{
       S.gauntlet=payload.new;
+      const sd=S.gauntlet.sd||{};
+      if(sd.state==='proposed'||sd.state==='active'){
+        if(sd.state==='proposed') renderSD();
+        if(sd.state==='active') sdRoundScreen();
+        return;
+      }
       if(S.gauntlet.status==='finished'&&S.screen!=='result') return go('result');
       if(S.screen==='board') boardScreen();
     })
@@ -515,7 +533,7 @@ function boardScreen(){
   </div>
   <div id="rounds">${g.game_ids.map((gid,ri)=>gameBlock(gid,ri,ps)).join('')}</div>
   <div class="row" style="margin-top:20px;margin-bottom:80px">
-    <button class="btn gold lg" onclick="finishGauntlet()">Finish Gauntlet</button>
+    <button class="btn gold lg" id="finBtn" onclick="finishGauntlet()">Finish Gauntlet</button>
   </div>`;
   renderChat();
 }
@@ -682,7 +700,14 @@ async function processUnlocks(g, roundWinnersArr, gauntletWinner){
 
 /* ---- FINISH + RESULT ---- */
 async function finishGauntlet(){
-  const g=S.gauntlet,t=totals(),w=roundsWon();
+  const g=S.gauntlet;
+  const hasAny=g.game_ids.some((gid,ri)=>g.player_ids.some(p=>{
+    const s=S.scores.find(x=>x.round_index===ri&&x.profile_id===p);
+    return s&&Object.values(s.raw||{}).some(v=>v!==''&&v!=null&&v!==false&&v!==0);
+  }));
+  if(!hasAny) return toast('Enter scores for at least one game first');
+  const btn=document.getElementById('finBtn'); if(btn){btn.disabled=true;btn.textContent='Finishing...';}
+  const t=totals(),w=roundsWon();
   let max=-1,winner=null,tie=false;
   g.player_ids.forEach(p=>{if(t[p]>max){max=t[p];winner=p;tie=false;}else if(t[p]===max)tie=true;});
   const roundWinnersArr=g.game_ids.map((gid,ri)=>roundWinners(ri,gid));
@@ -717,11 +742,12 @@ function resultScreen(){
     <button class="btn pink lg" onclick="playAgain()">Play Again</button>
     <button class="btn ghost lg" onclick="go('landing')">Quit</button>
   </div>
-  <div class="row" style="margin-top:14px">
+  <div class="row" style="margin-top:14px;margin-bottom:240px">
     ${topTie?'':`<button class="btn lg" style="background:var(--red)" onclick="proposeSD()">Sudden Death</button>`}
   </div>
   <div id="sdMount"></div>`;
   watchSD();
+  renderChat();
 }
 async function playAgain(){ Object.assign(setup,{players:S.gauntlet.num_players}); go('setup'); }
 
