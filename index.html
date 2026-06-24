@@ -296,7 +296,7 @@ function characterSelect(opt){
   </div>
   <div class="card" style="margin-top:14px">
     <div class="field" style="margin-bottom:6px"><label>Rare characters (earned only, not selectable)</label></div>
-    <div class="charGrid">${ALL_RARES.map(id=>{
+    <div class="charGrid" style="grid-template-columns:repeat(4,1fr)">${ALL_RARES.map(id=>{
       const owned=ownsRare(id); const meta=S.myDrops.find(d=>d.character_id===id);
       const isGauntlet=RARES_GAUNTLET.some(r=>r.id===id);
       const hintText=isGauntlet?'Win a gauntlet to roll for this':'Win the matching game round to roll';
@@ -449,15 +449,56 @@ async function createGauntlet(gameIds){
 
 /* ---- CONTINUE / OPEN ---- */
 async function continueScreen(){
-  const {data}=await sb.from('gauntlets').select('*').eq('status','active').order('created_at',{ascending:false}).limit(25);
+  const [{data},{data:finished}]=await Promise.all([
+    sb.from('gauntlets').select('*').eq('status','active').order('created_at',{ascending:false}).limit(25),
+    sb.from('gauntlets').select('*').eq('status','finished').order('created_at',{ascending:false}).limit(25)
+  ]);
   app.innerHTML=`<div class="topbar"><button class="btn ghost sm" onclick="go('landing')">&larr; Back</button>
-    <div class="pixel" style="font-size:18px"><img src="rz_logo.png" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:8px">CONTINUE</div><div></div></div>
-    <div class="card">${(data&&data.length)?data.map(g=>`
+    <div class="pixel" style="font-size:18px"><img src="rz_logo.png" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:8px">CONTINUE</div>
+    <button class="btn ghost sm" onclick="editProfile()">Edit Profile</button></div>
+    <div class="card"><h3 style="margin-bottom:10px">Active</h3>${(data&&data.length)?data.map(g=>`
       <div class="list-item" onclick="openGauntlet('${g.id}')">
         <div><strong>${esc(g.title)}</strong><div class="muted small">${g.num_players} players · ${g.game_ids.length} games</div></div>
         <span class="muted small" style="margin-left:auto;margin-right:12px">${new Date(g.created_at).toLocaleDateString()}</span>
         <button class="btn sm ghost" style="color:var(--red);border-color:var(--red);flex:none" onclick="event.stopPropagation();deleteGauntlet('${g.id}','${esc(g.title)}')">Delete</button>
-      </div>`).join(''):'<div class="muted">No active gauntlets. Start a new one.</div>'}</div>`;
+      </div>`).join(''):'<div class="muted">No active gauntlets.</div>'}</div>
+    <div class="card" style="margin-top:14px"><h3 style="margin-bottom:10px">Finished (view only)</h3>${(finished&&finished.length)?finished.map(g=>`
+      <div class="list-item" onclick="reviewGauntlet('${g.id}')">
+        <div><strong>${esc(g.title)}</strong><div class="muted small">${g.num_players} players · ${g.game_ids.length} games</div></div>
+        <span class="muted small" style="margin-left:auto">${new Date(g.created_at).toLocaleDateString()}</span>
+      </div>`).join(''):'<div class="muted">No finished gauntlets yet.</div>'}</div>`;
+}
+async function reviewGauntlet(id){
+  const {data:g}=await sb.from('gauntlets').select('*').eq('id',id).single();
+  S.gauntlet=g;
+  const {data:sc}=await sb.from('scores').select('*').eq('gauntlet_id',id);
+  S.scores=sc||[]; S.chat=[];
+  go('result');
+}
+function editProfile(){
+  if(!S.me) return toast('Pick a profile first');
+  const p=S.me;
+  const ov=document.createElement('div'); ov.className='overlay'; ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`<div class="sd-card" style="border-color:var(--purple);max-width:440px">
+    <div class="pixel" style="font-size:16px;margin-bottom:14px">EDIT PROFILE</div>
+    <div class="field"><label>Name</label><input type="text" id="editName" value="${esc(p.name)}" maxlength="14"></div>
+    <div class="field"><label>Color</label>
+      <div class="row" style="justify-content:flex-start">${COLORS.map(c=>`<div onclick="document.querySelectorAll('.epColor').forEach(d=>d.style.border='3px solid transparent');this.style.border='3px solid #fff';window._epColor='${c}'" class="epColor" style="width:34px;height:34px;border-radius:50%;background:${c};cursor:pointer;border:3px solid ${c===p.color?'#fff':'transparent'}"></div>`).join('')}</div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn pink" onclick="saveProfile()">Save</button>
+      <button class="btn ghost" onclick="this.closest('.overlay').remove()">Cancel</button>
+    </div>
+  </div>`; window._epColor=p.color; document.body.appendChild(ov);
+}
+async function saveProfile(){
+  const name=document.getElementById('editName').value.trim();
+  if(!name) return toast('Enter a name');
+  const {error}=await sb.from('profiles').update({name,color:window._epColor}).eq('id',S.me.id);
+  if(error) return toast(error.message.includes('duplicate')?'Name taken':'Error: '+error.message);
+  S.me.name=name; S.me.color=window._epColor;
+  const i=S.profiles.findIndex(p=>p.id===S.me.id); if(i>=0){S.profiles[i].name=name;S.profiles[i].color=window._epColor;}
+  document.querySelector('.overlay')?.remove(); toast('Profile updated');
 }
 async function deleteGauntlet(id,title){
   if(!confirm('Delete "'+title+'"? This removes all scores and chat for this gauntlet.')) return;
@@ -506,23 +547,26 @@ async function openGauntlet(id){
 function rawFor(roundIdx, pid){ const s=S.scores.find(x=>x.round_index===roundIdx&&x.profile_id===pid); return s?s.raw:{}; }
 function metaFor(roundIdx){ return (S.gauntlet.round_meta||{})[roundIdx]||{}; }
 function handicapFor(pid){ return (S.gauntlet.handicaps||{})[pid]||0; }
-function mergeMatchRaw(gid, raw){
+function mergeMatchRaw(gid, raw, meta){
   const mc=MATCHES[gid]; if(!mc) return raw||{};
-  const merged={}; const base=raw||{};
-  // get input keys from first match or from game def
+  const merged={}; const base=raw||{}; const isFn=gid==='fn';
   const def=defById(gid); if(!def) return base;
   def.inputs.forEach(f=>{
     if(f.type==='bool'){
       let any=false; for(let m=1;m<=mc;m++) if(base[f.key+'_'+m]) any=true;
       merged[f.key]=any;
     } else {
-      let sum=0; for(let m=1;m<=mc;m++) sum+=(parseFloat(base[f.key+'_'+m])||0);
+      let sum=0; for(let m=1;m<=mc;m++){
+        const isReload=isFn&&((meta||{})['mode_'+m]||'OG')==='Reload';
+        const skip=isReload&&(f.key==='rev'||f.key==='reb');
+        if(!skip) sum+=(parseFloat(base[f.key+'_'+m])||0);
+      }
       merged[f.key]=sum;
     }
   });
   return merged;
 }
-function scaledFor(roundIdx, gid, pid){ return scaled(gid, mergeMatchRaw(gid, rawFor(roundIdx,pid)), metaFor(roundIdx), gid==='cs2'?handicapFor(pid):0); }
+function scaledFor(roundIdx, gid, pid){ return scaled(gid, mergeMatchRaw(gid, rawFor(roundIdx,pid), metaFor(roundIdx)), metaFor(roundIdx), gid==='cs2'?handicapFor(pid):0); }
 function totals(){ const g=S.gauntlet; const t={}; g.player_ids.forEach(p=>t[p]=0);
   g.game_ids.forEach((gid,ri)=>{g.player_ids.forEach(p=>{t[p]+=scaledFor(ri,gid,p);});}); return t; }
 function roundsWon(){ const g=S.gauntlet; const w={}; g.player_ids.forEach(p=>w[p]=0);
@@ -596,23 +640,20 @@ function gameBlock(gid,ri,ps){
   const isFn=gid==='fn';
   const meta=metaFor(ri);
   const mc=MATCHES[gid]||1;
-  const fnInputs=isFn&&(meta.mode||'OG')==='Reload'?inputs.filter(f=>f.key==='dmg'):inputs;
   const isCS2=gid==='cs2';
+  const headerInputs=isFn?inputs:inputs; // always show all columns in header
   return `<div class="gblock">
     <div class="ghead">
       <span class="gn">Round ${ri+1}: ${esc(d.name)}</span>
-      ${isFn?`<div class="seg" style="margin-left:10px">
-        <button class="${(meta.mode||'OG')==='OG'?'on':''}" onclick="setMode(${ri},'OG')">OG</button>
-        <button class="${meta.mode==='Reload'?'on':''}" onclick="setMode(${ri},'Reload')">Reload</button></div>`:''}
       <div class="info">?<div class="tip">${esc(d.scale_note)}${mc>1?'\\n'+mc+' matches, scores are summed.':''}</div></div>
     </div>
     <table class="gtable"><thead><tr>
-      <th class="pl">Player</th>${mc>1?'<th></th>':''}${fnInputs.map(f=>`<th>${esc(f.label)}</th>`).join('')}${isCS2?'<th>Bonus</th>':''}<th>Score</th><th>Win</th></tr></thead>
+      <th class="pl">Player</th>${mc>1?'<th></th>':''}${headerInputs.map(f=>`<th>${esc(f.label)}</th>`).join('')}${isCS2?'<th>Bonus</th>':''}<th>Score</th><th>Win</th></tr></thead>
     <tbody>${ps.map(p=>{const raw=rawFor(ri,p.id); const sc=scaledFor(ri,gid,p.id); const won=winners.includes(p.id);
       const hc=isCS2?handicapFor(p.id):0;
       if(mc===1){
         return `<tr><td class="pl" style="color:${p.color}"><div style="display:flex;align-items:center;gap:6px">${avatar(p,"sm")} ${esc(p.name)}</div></td>
-        ${fnInputs.map(f=>f.type==='bool'
+        ${headerInputs.map(f=>f.type==='bool'
           ? `<td><input type="checkbox" ${raw[f.key]?'checked':''} onchange="setRaw(${ri},'${p.id}','${f.key}',this.checked)"></td>`
           : `<td><input type="number" inputmode="decimal" value="${raw[f.key]!=null?raw[f.key]:''}" oninput="setRaw(${ri},'${p.id}','${f.key}',this.value)"></td>`).join('')}
         ${isCS2?`<td class="muted" style="font-weight:700">+${hc}</td>`:''}
@@ -621,11 +662,14 @@ function gameBlock(gid,ri,ps){
       }
       let rows='';
       for(let m=1;m<=mc;m++){
-        const isFirst=m===1, isLast=m===mc;
+        const isFirst=m===1;
+        const matchMode=isFn?(meta['mode_'+m]||'OG'):'';
+        const isReload=matchMode==='Reload';
         rows+=`<tr>${isFirst?`<td rowspan="${mc}" class="pl" style="color:${p.color}"><div style="display:flex;align-items:center;gap:6px">${avatar(p,"sm")} ${esc(p.name)}</div></td>`:''}
-          <td class="muted small">Gm${m}</td>
-          ${fnInputs.map(f=>{const key=f.key+'_'+m;
-            return f.type==='bool'
+          <td style="white-space:nowrap">${isFn?`<div class="seg" style="font-size:11px"><button class="${!isReload?'on':''}" onclick="setMatchMode(${ri},${m},'OG')" style="padding:3px 5px">OG</button><button class="${isReload?'on':''}" onclick="setMatchMode(${ri},${m},'Reload')" style="padding:3px 5px">RL</button></div>`:`<span class="muted small">Gm${m}</span>`}</td>
+          ${headerInputs.map(f=>{const key=f.key+'_'+m;
+            const hidden=isFn&&isReload&&(f.key==='rev'||f.key==='reb');
+            return hidden?'<td></td>':f.type==='bool'
               ? `<td><input type="checkbox" ${raw[key]?'checked':''} onchange="setRaw(${ri},'${p.id}','${key}',this.checked)"></td>`
               : `<td><input type="number" inputmode="decimal" value="${raw[key]!=null?raw[key]:''}" oninput="setRaw(${ri},'${p.id}','${key}',this.value)"></td>`;}).join('')}
           ${isFirst?`<td rowspan="${mc}" class="sc" style="color:${p.color};vertical-align:middle">${sc}</td>
@@ -658,26 +702,24 @@ async function setMode(ri,mode){
   await sb.from('gauntlets').update({round_meta:rm}).eq('id',S.gauntlet.id);
   boardScreen();
 }
+async function setMatchMode(ri,matchNum,mode){
+  const rm={...(S.gauntlet.round_meta||{})}; rm[ri]={...(rm[ri]||{}),['mode_'+matchNum]:mode};
+  S.gauntlet.round_meta=rm;
+  await sb.from('gauntlets').update({round_meta:rm}).eq('id',S.gauntlet.id);
+  boardScreen();
+}
 /* live refresh without full rerender: update scores, gems, totals */
 function refreshBoardLive(){
   const g=S.gauntlet,t=totals(),w=roundsWon(),maxTot=Math.max(...Object.values(t));
+  const ps=g.player_ids.map(profById);
   g.player_ids.forEach((p,pi)=>{
     const strip=document.querySelectorAll('.pscore')[pi]; if(!strip)return;
     strip.querySelector('.tot').innerHTML=t[p]+(t[p]===maxTot&&maxTot>0?' <span class="leadtag">LEAD</span>':'');
     const col=profById(p).color;
     strip.querySelector('.gems').innerHTML=Array.from({length:w[p]||0}).map(()=>`<span class="gem" style="background:${col}"></span>`).join('')||'<span class="muted small">no rounds won</span>';
   });
-  // update each round scores + win chips
-  g.game_ids.forEach((gid,ri)=>{
-    const winners=roundWinners(ri,gid);
-    const block=document.querySelectorAll('.gblock')[ri]; if(!block)return;
-    const rows=block.querySelectorAll('tbody tr');
-    g.player_ids.forEach((p,pi)=>{const r=rows[pi];if(!r)return;
-      r.querySelector('.sc').textContent=scaledFor(ri,gid,p);
-      const wc=r.querySelectorAll('td');const last=wc[wc.length-1];
-      last.innerHTML=winners.includes(p)?`<span class="winchip" style="background:${profById(p).color};color:#1a0f2e">WIN</span>`:'';
-    });
-  });
+  const rd=document.getElementById('rounds');
+  if(rd) rd.innerHTML=g.game_ids.map((gid,ri)=>gameBlock(gid,ri,ps)).join('');
 }
 
 /* ---- EDIT GAUNTLET ---- */
