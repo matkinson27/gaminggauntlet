@@ -396,7 +396,7 @@ function renderHC(){
       <span class="small" style="width:110px;color:${p.color};font-weight:700">${esc(p.name)}</span>
       <input type="number" style="width:100px" value="${setup.handicaps[p.id]||0}" oninput="setup.handicaps['${p.id}']=+this.value" placeholder="e.g. 600">
     </div>`).join('')}
-    <div class="muted small">Flat bonus added to damage before scaling. 0 = none.</div></div></details>`;
+    <div class="muted small">Added to final score after scaling. Enter 300 = +300 points.</div></div></details>`;
 }
 function pool(){ return S.defs.filter(d=>setup.switch||!d.is_switch); }
 function beginSelection(){
@@ -455,8 +455,17 @@ async function continueScreen(){
     <div class="card">${(data&&data.length)?data.map(g=>`
       <div class="list-item" onclick="openGauntlet('${g.id}')">
         <div><strong>${esc(g.title)}</strong><div class="muted small">${g.num_players} players · ${g.game_ids.length} games</div></div>
-        <span class="muted small" style="margin-left:auto">${new Date(g.created_at).toLocaleDateString()}</span>
+        <span class="muted small" style="margin-left:auto;margin-right:12px">${new Date(g.created_at).toLocaleDateString()}</span>
+        <button class="btn sm ghost" style="color:var(--red);border-color:var(--red);flex:none" onclick="event.stopPropagation();deleteGauntlet('${g.id}','${esc(g.title)}')">Delete</button>
       </div>`).join(''):'<div class="muted">No active gauntlets. Start a new one.</div>'}</div>`;
+}
+async function deleteGauntlet(id,title){
+  if(!confirm('Delete "'+title+'"? This removes all scores and chat for this gauntlet.')) return;
+  await sb.from('chat').delete().eq('gauntlet_id',id);
+  await sb.from('scores').delete().eq('gauntlet_id',id);
+  await sb.from('gauntlets').delete().eq('id',id);
+  toast('Deleted');
+  continueScreen();
 }
 async function openGauntlet(id){
   const {data:g}=await sb.from('gauntlets').select('*').eq('id',id).single();
@@ -588,6 +597,7 @@ function gameBlock(gid,ri,ps){
   const meta=metaFor(ri);
   const mc=MATCHES[gid]||1;
   const fnInputs=isFn&&(meta.mode||'OG')==='Reload'?inputs.filter(f=>f.key==='dmg'):inputs;
+  const isCS2=gid==='cs2';
   return `<div class="gblock">
     <div class="ghead">
       <span class="gn">Round ${ri+1}: ${esc(d.name)}</span>
@@ -597,13 +607,15 @@ function gameBlock(gid,ri,ps){
       <div class="info">?<div class="tip">${esc(d.scale_note)}${mc>1?'\\n'+mc+' matches, scores are summed.':''}</div></div>
     </div>
     <table class="gtable"><thead><tr>
-      <th class="pl">Player</th>${mc>1?'<th></th>':''}${fnInputs.map(f=>`<th>${esc(f.label)}</th>`).join('')}<th>Score</th><th>Win</th></tr></thead>
+      <th class="pl">Player</th>${mc>1?'<th></th>':''}${fnInputs.map(f=>`<th>${esc(f.label)}</th>`).join('')}${isCS2?'<th>Bonus</th>':''}<th>Score</th><th>Win</th></tr></thead>
     <tbody>${ps.map(p=>{const raw=rawFor(ri,p.id); const sc=scaledFor(ri,gid,p.id); const won=winners.includes(p.id);
+      const hc=isCS2?handicapFor(p.id):0;
       if(mc===1){
         return `<tr><td class="pl" style="color:${p.color}"><div style="display:flex;align-items:center;gap:6px">${avatar(p,"sm")} ${esc(p.name)}</div></td>
         ${fnInputs.map(f=>f.type==='bool'
           ? `<td><input type="checkbox" ${raw[f.key]?'checked':''} onchange="setRaw(${ri},'${p.id}','${f.key}',this.checked)"></td>`
           : `<td><input type="number" inputmode="decimal" value="${raw[f.key]!=null?raw[f.key]:''}" oninput="setRaw(${ri},'${p.id}','${f.key}',this.value)"></td>`).join('')}
+        ${isCS2?`<td class="muted" style="font-weight:700">+${hc}</td>`:''}
         <td class="sc" style="color:${p.color}">${sc}</td>
         <td>${won?`<span class="winchip" style="background:${p.color};color:#1a0f2e">WIN</span>`:''}</td></tr>`;
       }
