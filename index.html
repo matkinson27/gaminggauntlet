@@ -7,6 +7,7 @@
 <title>Rift &amp; Zingo's Gaming Gauntlet</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="rz_logo.png">
 <link rel="manifest" href='data:application/manifest+json,{"name":"RZ Gaming Gauntlet","short_name":"RZGG","display":"standalone","background_color":"%231b1033","theme_color":"%231b1033","icons":[]}'>
 <style>
 :root{
@@ -174,6 +175,7 @@ const RARE_NAMES = {gold_party_mouse:'Goldentail',gold_party_cat:'Goldenpaw',
   smash_cat:'Brawler',cs_cat:'Agent Whiskers',rs3_mouse:'Lootmouse'};
 const ALL_RARES = [...RARES_GAUNTLET.map(r=>r.id), ...Object.values(GAME_RARES)];
 const DROP_RATE = 1/200;
+const COINS = {reroll:1000, replay:1200, removeRandom:1500, removeChoice:1800, shot:1000, rerollAll:2000, rerollAllChoice:2500};
 const MATCHES = {lol:2, fn:3}; // games with multiple matches per round
 const COLORS = ['#f06b9a','#5b8def','#9d6fd9','#f5c451','#7fe0a3','#ff8a5b','#5fd0e0','#e06bd6'];
 
@@ -591,6 +593,7 @@ function boardScreen(){
     <button class="btn ghost sm" onclick="editGauntlet()">Edit Gauntlet</button>
     <div class="pixel" style="font-size:24px;text-align:center">${esc(g.title)}</div>
     <div class="me">${S.me?avatar(S.me,'sm'):''}<span class="small" style="color:${S.me?S.me.color:''}">${S.me?esc(S.me.name):''}</span>
+      <span class="small" style="color:var(--gold);font-weight:700">${S.me?S.me.coins||0:0} coins</span>
       <button class="btn ghost sm" onclick="changeIcon()">Icon</button>
       <button class="btn ghost sm" onclick="go('hiscores')">HiScores</button></div>
   </div>
@@ -724,31 +727,166 @@ function refreshBoardLive(){
 
 /* ---- EDIT GAUNTLET ---- */
 function editGauntlet(){
-  const g=S.gauntlet; const pl=S.defs;
+  const g=S.gauntlet; const myCoins=S.me?S.me.coins||0:0;
+  const noScores=!g.game_ids.some((gid,ri)=>g.player_ids.some(p=>{
+    const s=S.scores.find(x=>x.round_index===ri&&x.profile_id===p);
+    return s&&Object.values(s.raw||{}).some(v=>v!==''&&v!=null&&v!==false&&v!==0);
+  }));
   app.innerHTML=`<div class="topbar"><button class="btn ghost sm" onclick="boardScreen()">&larr; Board</button>
-    <div class="pixel" style="font-size:18px"><img src="rz_logo.png" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:8px">EDIT ROUNDS</div><div></div></div>
-  <div class="card">
-    <div class="field"><label>Current rounds</label>
+    <div class="pixel" style="font-size:18px"><img src="rz_logo.png" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:8px">SHOP</div>
+    <span style="color:var(--gold);font-weight:700;font-size:20px">${myCoins} coins</span></div>
+  <div class="card"><h3 style="margin-bottom:12px">Round actions</h3>
+    <button class="btn gold" style="width:100%;margin-bottom:8px;text-align:left" ${myCoins<COINS.reroll?'disabled':''} onclick="shopReroll()">Re-roll a round <span class="muted small">${COINS.reroll} coins</span></button>
+    <button class="btn" style="width:100%;margin-bottom:8px;text-align:left" ${myCoins<COINS.replay?'disabled':''} onclick="shopReplay()">Re-play a round <span class="muted small">${COINS.replay} coins</span></button>
+    <button class="btn" style="width:100%;margin-bottom:8px;text-align:left" ${myCoins<COINS.removeRandom?'disabled':''} onclick="shopRemove('random')">Remove + add random <span class="muted small">${COINS.removeRandom} coins</span></button>
+    <button class="btn" style="width:100%;margin-bottom:8px;text-align:left" ${myCoins<COINS.removeChoice?'disabled':''} onclick="shopRemove('choice')">Remove + add your choice <span class="muted small">${COINS.removeChoice} coins</span></button>
+  </div>
+  <div class="card" style="margin-top:12px"><h3 style="margin-bottom:12px">Gauntlet actions (start only)</h3>
+    <button class="btn" style="width:100%;margin-bottom:8px;text-align:left" ${myCoins<COINS.rerollAll||!noScores?'disabled':''} onclick="shopRerollAll('random')">Re-roll entire gauntlet (random) <span class="muted small">${COINS.rerollAll} coins</span></button>
+    <button class="btn" style="width:100%;margin-bottom:8px;text-align:left" ${myCoins<COINS.rerollAllChoice||!noScores?'disabled':''} onclick="shopRerollAll('choice')">Re-roll entire gauntlet (your choice) <span class="muted small">${COINS.rerollAllChoice} coins</span></button>
+    ${!noScores?'<div class="muted small">Disabled after scores are entered.</div>':''}
+  </div>
+  <div class="card" style="margin-top:12px"><h3 style="margin-bottom:12px">Anytime</h3>
+    <button class="btn pink" style="width:100%;text-align:left" ${myCoins<COINS.shot?'disabled':''} onclick="spendShot()">Give a shot <span class="muted small">${COINS.shot} coins</span></button>
+  </div>
+  <div class="muted small" style="margin-top:14px;text-align:center">Coins = your winning margin. Win by 300, earn 300.</div>
+  <div class="card" style="margin-top:14px"><h3 style="margin-bottom:12px">Free edits</h3>
+    <div class="field"><label>Current rounds (change freely)</label>
       ${g.game_ids.map((gid,i)=>`<div class="row" style="justify-content:flex-start;margin-bottom:8px">
         <span class="muted small" style="width:60px">Round ${i+1}</span>
-        <select onchange="swapRound(${i},this.value)" style="max-width:220px">
-          ${pl.map(d=>`<option value="${d.id}" ${d.id===gid?'selected':''}>${esc(d.name)}</option>`).join('')}
+        <select onchange="freeSwap(${i},this.value)" style="max-width:200px">
+          ${S.defs.map(d=>`<option value="${d.id}" ${d.id===gid?'selected':''}>${esc(d.name)}</option>`).join('')}
         </select>
-        <button class="btn ghost sm" onclick="removeRound(${i})">Remove</button>
+        <button class="btn ghost sm" onclick="freeRemove(${i})">Remove</button>
       </div>`).join('')}
     </div>
     <div class="field"><label>Add a round</label>
-      <div class="row" style="justify-content:flex-start">
-        ${pl.map(d=>`<button class="btn sm" onclick="addRound('${d.id}')">+ ${esc(d.name)}</button>`).join('')}
+      <div class="row" style="justify-content:flex-start;flex-wrap:wrap">
+        ${S.defs.map(d=>`<button class="btn sm" onclick="freeAdd('${d.id}')">+ ${esc(d.name)}</button>`).join('')}
       </div>
     </div>
-    <button class="btn pink" onclick="boardScreen()">Done</button>
-  </div>`;
+  </div>
+  <button class="btn pink lg" style="margin-top:14px" onclick="boardScreen()">Done</button>
+  <div id="shopModal"></div>`;
+}
+function shopModal(title,body){
+  const m=document.getElementById('shopModal')||document.body;
+  const ov=document.createElement('div');ov.className='overlay';ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`<div class="sd-card" style="border-color:var(--gold);max-width:500px;max-height:80vh;overflow-y:auto">
+    <div class="pixel" style="font-size:14px;color:var(--gold);margin-bottom:12px">${title}</div>${body}
+    <button class="btn ghost sm" style="margin-top:12px" onclick="this.closest('.overlay').remove()">Cancel</button>
+  </div>`;document.body.appendChild(ov);
+}
+function roundSummary(ri){
+  const g=S.gauntlet,gid=g.game_ids[ri],d=defById(gid);
+  const scores=g.player_ids.map(p=>{const pr=profById(p);return `<span style="color:${pr.color}">${esc(pr.name)}: ${scaledFor(ri,gid,p)}</span>`;}).join(' vs ');
+  return `Round ${ri+1}: ${esc(d.name)} (${scores})`;
+}
+async function spendCoins(amount){
+  if(!S.me) return false; const cur=S.me.coins||0;
+  if(cur<amount){toast('Not enough coins');return false;}
+  const nc=cur-amount;
+  await sb.from('profiles').update({coins:nc}).eq('id',S.me.id);
+  S.me.coins=nc; const i=S.profiles.findIndex(p=>p.id===S.me.id); if(i>=0)S.profiles[i].coins=nc;
+  return true;
+}
+function shopReroll(){
+  const g=S.gauntlet;
+  shopModal('RE-ROLL A ROUND',`<div class="muted small" style="margin-bottom:10px">Pick a round to replace with a random game.</div>
+    ${g.game_ids.map((gid,i)=>`<button class="btn" style="width:100%;margin-bottom:6px;text-align:left;font-size:15px" onclick="execReroll(${i})">${roundSummary(i)}</button>`).join('')}`);
+}
+async function execReroll(ri){
+  document.querySelector('.overlay')?.remove();
+  if(!await spendCoins(COINS.reroll)) return;
+  const pool=S.defs.filter(d=>S.gauntlet.include_switch||!d.is_switch);
+  const pick=pool[Math.floor(Math.random()*pool.length)];
+  S.gauntlet.game_ids[ri]=pick.id; await persistGames();
+  await sb.from('scores').delete().eq('gauntlet_id',S.gauntlet.id).eq('round_index',ri);
+  S.scores=S.scores.filter(s=>s.round_index!==ri);
+  toast('Re-rolled to '+pick.name+'! -'+COINS.reroll); editGauntlet();
+}
+function shopReplay(){
+  const g=S.gauntlet;
+  shopModal('RE-PLAY A ROUND',`<div class="muted small" style="margin-bottom:10px">Pick a round to play again. Both scores count.</div>
+    ${g.game_ids.map((gid,i)=>`<button class="btn" style="width:100%;margin-bottom:6px;text-align:left;font-size:15px" onclick="execReplay(${i},'${gid}')">${roundSummary(i)}</button>`).join('')}`);
+}
+async function execReplay(ri,gid){
+  document.querySelector('.overlay')?.remove();
+  if(!await spendCoins(COINS.replay)) return;
+  S.gauntlet.game_ids.push(gid); await persistGames();
+  toast('Re-play added as Round '+(S.gauntlet.game_ids.length)+'! -'+COINS.replay); editGauntlet();
+}
+function shopRemove(type){
+  const g=S.gauntlet; const cost=type==='random'?COINS.removeRandom:COINS.removeChoice;
+  shopModal('REMOVE A ROUND',`<div class="muted small" style="margin-bottom:10px">Pick a round to remove.${type==='choice'?' You choose the replacement.':' A random game replaces it.'}</div>
+    ${g.game_ids.map((gid,i)=>`<button class="btn" style="width:100%;margin-bottom:6px;text-align:left;font-size:15px" onclick="execRemove(${i},'${type}',${cost})">${roundSummary(i)}</button>`).join('')}`);
+}
+async function execRemove(ri,type,cost){
+  document.querySelector('.overlay')?.remove();
+  let replacement;
+  if(type==='choice'){
+    const pl=S.defs.filter(d=>S.gauntlet.include_switch||!d.is_switch);
+    const pick=prompt('Replace with: '+pl.map(d=>d.name).join(', ')+' (or leave blank to just remove)');
+    replacement=pick?pl.find(d=>d.name.toLowerCase()===pick.toLowerCase()):null;
+    if(pick&&!replacement) return toast('Game not found');
+  } else {
+    const pool=S.defs.filter(d=>S.gauntlet.include_switch||!d.is_switch);
+    replacement=pool[Math.floor(Math.random()*pool.length)];
+  }
+  if(!await spendCoins(cost)) return;
+  S.gauntlet.game_ids.splice(ri,1);
+  await sb.from('scores').delete().eq('gauntlet_id',S.gauntlet.id).eq('round_index',ri);
+  S.scores=S.scores.filter(s=>s.round_index!==ri);
+  if(replacement) S.gauntlet.game_ids.push(replacement.id);
+  await persistGames();
+  toast('Done!'+(replacement?' Added '+replacement.name:'')+' -'+cost); editGauntlet();
+}
+async function shopRerollAll(type){
+  const g=S.gauntlet; const cost=type==='random'?COINS.rerollAll:COINS.rerollAllChoice;
+  if(type==='choice'){
+    const pl=S.defs.filter(d=>g.include_switch||!d.is_switch);
+    window._picks=[]; window._pickTarget=g.game_ids.length; window._pickCost=cost;
+    shopModal('RE-ROLL GAUNTLET (YOUR CHOICE)',`<div class="muted small" style="margin-bottom:10px">Pick ${g.game_ids.length} games in order.</div>
+      <div>${pl.map(d=>`<button class="btn sm" style="margin:4px" onclick="addPick('${d.id}','${esc(d.name)}')">${esc(d.name)}</button>`).join('')}</div>
+      <div class="muted small" style="margin-top:8px">Picked: <span id="pickCount">0</span>/${g.game_ids.length}</div>`);
+  } else {
+    if(!confirm('Re-roll entire gauntlet randomly for '+cost+' coins?')) return;
+    if(!await spendCoins(cost)) return;
+    const pool=S.defs.filter(d=>g.include_switch||!d.is_switch);
+    const shuffled=[...pool].sort(()=>Math.random()-.5).slice(0,g.game_ids.length).map(d=>d.id);
+    S.gauntlet.game_ids=shuffled; await persistGames();
+    await sb.from('scores').delete().eq('gauntlet_id',g.id); S.scores=[];
+    toast('Gauntlet re-rolled! -'+cost); editGauntlet();
+  }
+}
+async function addPick(id,name){
+  window._picks.push(id);
+  const el=document.getElementById('pickCount'); if(el) el.textContent=window._picks.length;
+  if(window._picks.length>=window._pickTarget){
+    document.querySelector('.overlay')?.remove();
+    if(!await spendCoins(window._pickCost)) return;
+    S.gauntlet.game_ids=[...window._picks]; await persistGames();
+    await sb.from('scores').delete().eq('gauntlet_id',S.gauntlet.id); S.scores=[];
+    toast('Gauntlet rebuilt! -'+window._pickCost); editGauntlet();
+  }
+}
+async function spendShot(){
+  const others=S.profiles.filter(p=>S.me&&p.id!==S.me.id);
+  if(!others.length) return toast('No one to give a shot to');
+  const pick=prompt('Who takes the shot? '+others.map(p=>p.name).join(', '));
+  if(!pick) return;
+  const target=others.find(p=>p.name.toLowerCase()===pick.toLowerCase());
+  if(!target) return toast('Player not found');
+  if(!await spendCoins(COINS.shot)) return;
+  toast(esc(target.name)+' owes a shot!');
+  if(S.gauntlet){
+    await sb.from('chat').insert({gauntlet_id:S.gauntlet.id,profile_id:S.me.id,msg:'gave '+target.name+' a shot! ('+COINS.shot+' coins)'});
+  }
 }
 async function persistGames(){ await sb.from('gauntlets').update({game_ids:S.gauntlet.game_ids}).eq('id',S.gauntlet.id); }
-async function swapRound(i,gid){ S.gauntlet.game_ids[i]=gid; await persistGames(); editGauntlet(); }
-async function addRound(gid){ S.gauntlet.game_ids.push(gid); await persistGames(); editGauntlet(); }
-async function removeRound(i){ S.gauntlet.game_ids.splice(i,1);
+async function freeSwap(i,gid){ S.gauntlet.game_ids[i]=gid; await persistGames(); editGauntlet(); }
+async function freeAdd(gid){ S.gauntlet.game_ids.push(gid); await persistGames(); editGauntlet(); }
+async function freeRemove(i){ S.gauntlet.game_ids.splice(i,1);
   await sb.from('scores').delete().eq('gauntlet_id',S.gauntlet.id).eq('round_index',i);
   S.scores=S.scores.filter(s=>s.round_index!==i);
   await persistGames(); editGauntlet(); }
@@ -808,6 +946,14 @@ async function finishGauntlet(){
   await sb.from('gauntlets').update({status:'finished'}).eq('id',g.id);
   S.gauntlet.status='finished';
   await processUnlocks(g, roundWinnersArr, tie?null:winner);
+  // award coins = winning margin to the winner
+  if(!tie&&winner){
+    const margin=Math.abs(t[winner]-Math.max(...g.player_ids.filter(p=>p!==winner).map(p=>t[p])));
+    const pr=profById(winner); const nc=(pr.coins||0)+margin;
+    await sb.from('profiles').update({coins:nc}).eq('id',winner);
+    pr.coins=nc; if(S.me&&S.me.id===winner) S.me.coins=nc;
+    toast(esc(pr.name)+' earned '+margin+' coins');
+  }
   go('result');
 }
 function resultScreen(){
