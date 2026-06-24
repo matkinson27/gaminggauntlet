@@ -176,6 +176,21 @@ const RARE_NAMES = {gold_party_mouse:'Goldentail',gold_party_cat:'Goldenpaw',
 const ALL_RARES = [...RARES_GAUNTLET.map(r=>r.id), ...Object.values(GAME_RARES)];
 const DROP_RATE = 1/200;
 const COINS = {reroll:1000, replay:1200, removeRandom:1500, removeChoice:1800, shot:1000, rerollAll:2000, rerollAllChoice:2500};
+const SHOP_CHARS = [
+  {id:'aa',name:'Jinx',cost:250},
+  {id:'aaa',name:'Tipsy',cost:250},
+  {id:'aaaa',name:'Goblet',cost:250},
+  {id:'aaaaa',name:'Gatsby',cost:250},
+  {id:'aaaaaa',name:'Pint',cost:250},
+  {id:'aaaaaaa',name:'Mugsy',cost:250}
+];
+const CURSORS = [
+  {id:'cursor_rz',name:'RZ Logo',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><circle cx='16' cy='16' r='14' fill='%239d6fd9' stroke='%23f076a0' stroke-width='2'/><text x='16' y='21' text-anchor='middle' font-size='14' font-weight='bold' fill='%23f4b0cc' font-family='sans-serif'>RZ</text></svg>`},
+  {id:'cursor_rift',name:'Rift',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='40' height='20'><text x='2' y='16' font-size='16' font-weight='bold' fill='%23f076a0' stroke='%239d6fd9' stroke-width='1' font-family='sans-serif'>RIFT</text></svg>`},
+  {id:'cursor_knife',name:'Doppler Knife',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><defs><linearGradient id='dp' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%234060ff'/><stop offset='50%' stop-color='%23a040e0'/><stop offset='100%' stop-color='%23f040a0'/></linearGradient></defs><path d='M6 26L26 6l2 2-16 20z' fill='url(%23dp)'/><path d='M4 28l4-4 2 2-4 4z' fill='%23888'/></svg>`},
+  {id:'cursor_shuriken',name:'Shuriken',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><path d='M16 2l4 10 10-4-10 4 4 10-4-10-10 4 10-4-4-10 4 10z' fill='%23c0c0c0' stroke='%23666' stroke-width='1'/><circle cx='16' cy='16' r='3' fill='%23333'/></svg>`},
+  {id:'cursor_firework',name:'Firework',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><line x1='16' y1='16' x2='16' y2='4' stroke='%235b8def' stroke-width='2'/><line x1='16' y1='16' x2='26' y2='8' stroke='%239d6fd9' stroke-width='2'/><line x1='16' y1='16' x2='28' y2='16' stroke='%23f076a0' stroke-width='2'/><line x1='16' y1='16' x2='26' y2='24' stroke='%235b8def' stroke-width='2'/><line x1='16' y1='16' x2='6' y2='8' stroke='%23f076a0' stroke-width='2'/><line x1='16' y1='16' x2='4' y2='16' stroke='%239d6fd9' stroke-width='2'/><line x1='16' y1='16' x2='6' y2='24' stroke='%235b8def' stroke-width='2'/><line x1='16' y1='16' x2='16' y2='28' stroke='%23f076a0' stroke-width='2'/><circle cx='16' cy='16' r='2' fill='%23fff'/></svg>`}
+];
 const MATCHES = {lol:2, fn:3}; // games with multiple matches per round
 const COLORS = ['#f06b9a','#5b8def','#9d6fd9','#f5c451','#7fe0a3','#ff8a5b','#5fd0e0','#e06bd6'];
 
@@ -326,7 +341,8 @@ async function createProfile(next){
 }
 function changeIcon(){
   const allOwned=S.myDrops.map(d=>d.character_id);
-  const pickable=[...CHARACTERS.map(c=>c.id),...allOwned];
+  const shopOwned=(S.me&&S.me.owned||[]).filter(id=>SHOP_CHARS.some(c=>c.id===id));
+  const pickable=[...CHARACTERS.map(c=>c.id),...allOwned,...shopOwned];
   const ov=document.createElement('div'); ov.className='overlay'; ov.onclick=e=>{if(e.target===ov)ov.remove();};
   ov.innerHTML=`<div class="sd-card" style="border-color:var(--purple);max-width:560px;max-height:80vh;overflow-y:auto">
     <div class="pixel" style="font-size:16px;margin-bottom:12px">CHANGE ICON</div>
@@ -728,6 +744,7 @@ function refreshBoardLive(){
 /* ---- EDIT GAUNTLET ---- */
 function editGauntlet(){
   const g=S.gauntlet; const myCoins=S.me?S.me.coins||0:0;
+  const myOwned=(S.me&&S.me.owned)||[];
   const noScores=!g.game_ids.some((gid,ri)=>g.player_ids.some(p=>{
     const s=S.scores.find(x=>x.round_index===ri&&x.profile_id===p);
     return s&&Object.values(s.raw||{}).some(v=>v!==''&&v!=null&&v!==false&&v!==0);
@@ -748,6 +765,27 @@ function editGauntlet(){
   </div>
   <div class="card" style="margin-top:12px"><h3 style="margin-bottom:12px">Anytime</h3>
     <button class="btn pink" style="width:100%;text-align:left" ${myCoins<COINS.shot?'disabled':''} onclick="spendShot()">Give a shot <span class="muted small">${COINS.shot} coins</span></button>
+  </div>
+  <div class="card" style="margin-top:12px"><h3 style="margin-bottom:12px">Characters (250 coins)</h3>
+    <div class="charGrid" style="grid-template-columns:repeat(3,1fr)">${SHOP_CHARS.map(c=>{
+      const owned=myOwned.includes(c.id);
+      return `<div class="char" style="cursor:${owned?'default':'pointer'}">
+        <img class="charimg" src="./${c.id}.png" onerror="this.style.background='var(--panel2)'">
+        <div class="nm">${c.name}</div>
+        ${owned?'<div class="small" style="color:var(--gold)">owned</div>'
+          :`<button class="btn sm gold" ${myCoins<250?'disabled':''} onclick="buyShopChar('${c.id}','${c.name}',250)">Buy 250</button>`}
+      </div>`;}).join('')}</div>
+  </div>
+  <div class="card" style="margin-top:12px"><h3 style="margin-bottom:12px">Cursors (500 coins)</h3>
+    <div class="charGrid" style="grid-template-columns:repeat(3,1fr)">${CURSORS.map(c=>{
+      const owned=myOwned.includes(c.id); const active=S.me&&S.me.cursor===c.id;
+      return `<div class="char" style="cursor:${owned?'default':'pointer'}">
+        <div style="width:72px;height:72px;border-radius:50%;background:var(--panel);display:flex;align-items:center;justify-content:center"><img src="data:image/svg+xml,${c.svg}" style="width:32px;height:32px"></div>
+        <div class="nm">${c.name}</div>
+        ${owned?(active?'<div class="small" style="color:var(--gold)">active</div>':`<button class="btn sm" onclick="applyCursor('${c.id}')">Use</button>`)
+          :`<button class="btn sm gold" ${myCoins<500?'disabled':''} onclick="buyCursor('${c.id}','${c.name}',500)">Buy 500</button>`}
+      </div>`;}).join('')}
+      ${S.me&&S.me.cursor?`<button class="btn ghost sm" style="margin-top:8px" onclick="applyCursor('')">Reset to default cursor</button>`:''}</div>
   </div>
   <div class="muted small" style="margin-top:14px;text-align:center">Coins = your winning margin. Win by 300, earn 300.</div>
   <div class="card" style="margin-top:14px"><h3 style="margin-bottom:12px">Free edits</h3>
@@ -884,6 +922,30 @@ async function spendShot(){
   }
 }
 async function persistGames(){ await sb.from('gauntlets').update({game_ids:S.gauntlet.game_ids}).eq('id',S.gauntlet.id); }
+async function buyShopChar(id,name,cost){
+  if(!await spendCoins(cost)) return;
+  const owned=[...(S.me.owned||[]),id];
+  await sb.from('profiles').update({owned}).eq('id',S.me.id);
+  S.me.owned=owned; const i=S.profiles.findIndex(p=>p.id===S.me.id); if(i>=0)S.profiles[i].owned=owned;
+  toast('Unlocked '+name+'!'); editGauntlet();
+}
+async function buyCursor(id,name,cost){
+  if(!await spendCoins(cost)) return;
+  const owned=[...(S.me.owned||[]),id];
+  await sb.from('profiles').update({owned,cursor:id}).eq('id',S.me.id);
+  S.me.owned=owned; S.me.cursor=id;
+  const i=S.profiles.findIndex(p=>p.id===S.me.id); if(i>=0){S.profiles[i].owned=owned;S.profiles[i].cursor=id;}
+  applyCursorCSS(id); toast('Unlocked & equipped '+name+'!'); editGauntlet();
+}
+async function applyCursor(id){
+  await sb.from('profiles').update({cursor:id||null}).eq('id',S.me.id);
+  S.me.cursor=id||null; applyCursorCSS(id); editGauntlet();
+}
+function applyCursorCSS(id){
+  if(!id){document.body.style.cursor='';return;}
+  const c=CURSORS.find(x=>x.id===id);
+  if(c) document.body.style.cursor=`url("data:image/svg+xml,${c.svg}") 16 16, auto`;
+}
 async function freeSwap(i,gid){ S.gauntlet.game_ids[i]=gid; await persistGames(); editGauntlet(); }
 async function freeAdd(gid){ S.gauntlet.game_ids.push(gid); await persistGames(); editGauntlet(); }
 async function freeRemove(i){ S.gauntlet.game_ids.splice(i,1);
@@ -1143,7 +1205,7 @@ function fireConfetti(){
 }
 
 /* ============ BOOT ============ */
-(async function(){ await loadCore(); landing(); })();
+(async function(){ await loadCore(); if(S.me&&S.me.cursor) applyCursorCSS(S.me.cursor); landing(); })();
 </script>
 </body>
 </html>
