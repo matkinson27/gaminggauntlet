@@ -176,6 +176,14 @@ const RARE_NAMES = {gold_party_mouse:'Goldentail',gold_party_cat:'Goldenpaw',
 const ALL_RARES = [...RARES_GAUNTLET.map(r=>r.id), ...Object.values(GAME_RARES)];
 const DROP_RATE = 1/200;
 const COINS = {reroll:1000, replay:1200, removeRandom:1500, removeChoice:1800, shot:1000, rerollAll:2000, rerollAllChoice:2500};
+const THEMES = [
+  {id:'theme_red',name:'Crimson',cost:1000,vars:{'--bg':'#2b0f0f','--bg2':'#3d1818','--panel':'#4d2020','--panel2':'#5c2a2a','--line':'#8a3030','--pink':'#ff5050','--purple':'#cc3030','--blue':'#ff7070','--muted':'#d4a0a0'}},
+  {id:'theme_blue',name:'Deep Ocean',cost:1000,vars:{'--bg':'#0a1628','--bg2':'#122040','--panel':'#1a2e58','--panel2':'#223870','--line':'#3050a0','--pink':'#60a0ff','--purple':'#4080e0','--blue':'#70b0ff','--muted':'#a0bce0'}},
+  {id:'theme_marble',name:'Red/Blue Marble',cost:1000,vars:{'--bg':'#1a0e28','--bg2':'#281430','--panel':'#2e1a48','--panel2':'#3a2058','--line':'#6030a0','--pink':'#ff5070','--purple':'#8040d0','--blue':'#5080ff','--muted':'#c0a0e0'},bg:'linear-gradient(135deg,rgba(180,30,60,.15),rgba(40,60,180,.15))'},
+  {id:'theme_green',name:'Emerald',cost:1000,vars:{'--bg':'#0a1e10','--bg2':'#122e18','--panel':'#1a3e22','--panel2':'#224e2c','--line':'#308040','--pink':'#50d070','--purple':'#30a050','--blue':'#70e090','--muted':'#a0d4b0'}},
+  {id:'theme_doppler',name:'Green Doppler',cost:1000,vars:{'--bg':'#0a1a14','--bg2':'#10281e','--panel':'#183828','--panel2':'#204832','--line':'#28804a','--pink':'#40e080','--purple':'#20c060','--blue':'#60ffa0','--muted':'#90d4b8'},bg:'linear-gradient(160deg,rgba(0,80,40,.2),rgba(0,200,100,.1),rgba(0,60,30,.2))'},
+  {id:'theme_chrome',name:'Chrome',cost:1000,vars:{'--bg':'#1a1a20','--bg2':'#24242c','--panel':'#2e2e38','--panel2':'#383844','--line':'#585868','--pink':'#d0d0e0','--purple':'#a0a0b8','--blue':'#c0c0d8','--muted':'#9898a8','--gold':'#e0d0a0','--ink':'#eeeef4'},bg:'linear-gradient(160deg,rgba(180,180,200,.08),rgba(100,100,120,.08))'}
+];
 const SHOP_CHARS = [
   {id:'aa',name:'Jinx',cost:250},
   {id:'aaa',name:'Tipsy',cost:250},
@@ -262,7 +270,6 @@ function landing(){
   app.innerHTML=`<div class="center">
     <img src="rz_logo.png" class="logo" alt="RZ">
     <div class="title" style="font-size:clamp(32px,7vw,56px)">RIFT &amp; ZINGO'S<br>GAMING GAUNTLET</div>
-    <div style="color:var(--muted);font-size:24px">Choose your fate</div>
     <div class="row" style="margin-top:16px">
       <button class="btn lg pink" style="font-size:28px;padding:24px 44px" onclick="go('character',{next:'setup'})">Create New Gauntlet</button>
       <button class="btn lg blue" style="font-size:28px;padding:24px 44px" onclick="go('character',{next:'continue'})">Continue Existing</button>
@@ -787,6 +794,18 @@ function editGauntlet(){
       </div>`;}).join('')}
       ${S.me&&S.me.cursor?`<button class="btn ghost sm" style="margin-top:8px" onclick="applyCursor('')">Reset to default cursor</button>`:''}</div>
   </div>
+  <div class="card" style="margin-top:12px"><h3 style="margin-bottom:12px">Themes (1000 coins)</h3>
+    <div class="charGrid" style="grid-template-columns:repeat(3,1fr)">${THEMES.map(t=>{
+      const owned=myOwned.includes(t.id); const active=S.me&&S.me.theme===t.id;
+      const preview=Object.entries(t.vars).slice(0,3).map(([k,v])=>`<span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:${v}"></span>`).join('');
+      return `<div class="char" style="cursor:${owned?'default':'pointer'}">
+        <div style="display:flex;gap:4px;margin-bottom:4px">${preview}</div>
+        <div class="nm">${t.name}</div>
+        ${owned?(active?'<div class="small" style="color:var(--gold)">active</div>':`<button class="btn sm" onclick="applyTheme('${t.id}')">Use</button>`)
+          :`<button class="btn sm gold" ${myCoins<1000?'disabled':''} onclick="buyTheme('${t.id}','${t.name}',1000)">Buy 1000</button>`}
+      </div>`;}).join('')}
+      ${S.me&&S.me.theme?`<button class="btn ghost sm" style="margin-top:8px" onclick="applyTheme('')">Reset to default theme</button>`:''}</div>
+  </div>
   <div class="muted small" style="margin-top:14px;text-align:center">Coins = your winning margin. Win by 300, earn 300.</div>
   <div class="card" style="margin-top:14px"><h3 style="margin-bottom:12px">Free edits</h3>
     <div class="field"><label>Current rounds (change freely)</label>
@@ -945,6 +964,28 @@ function applyCursorCSS(id){
   if(!id){document.body.style.cursor='';return;}
   const c=CURSORS.find(x=>x.id===id);
   if(c) document.body.style.cursor=`url("data:image/svg+xml,${c.svg}") 16 16, auto`;
+}
+async function buyTheme(id,name,cost){
+  if(!await spendCoins(cost)) return;
+  const owned=[...(S.me.owned||[]),id];
+  await sb.from('profiles').update({owned,theme:id}).eq('id',S.me.id);
+  S.me.owned=owned; S.me.theme=id;
+  const i=S.profiles.findIndex(p=>p.id===S.me.id); if(i>=0){S.profiles[i].owned=owned;S.profiles[i].theme=id;}
+  applyThemeCSS(id); toast('Unlocked & equipped '+name+'!'); editGauntlet();
+}
+async function applyTheme(id){
+  await sb.from('profiles').update({theme:id||null}).eq('id',S.me.id);
+  S.me.theme=id||null; applyThemeCSS(id); editGauntlet();
+}
+function applyThemeCSS(id){
+  const root=document.documentElement;
+  // reset to defaults
+  ['--bg','--bg2','--panel','--panel2','--line','--ink','--muted','--pink','--blue','--purple','--gold'].forEach(k=>root.style.removeProperty(k));
+  document.body.style.backgroundImage='';
+  if(!id) return;
+  const t=THEMES.find(x=>x.id===id); if(!t) return;
+  Object.entries(t.vars).forEach(([k,v])=>root.style.setProperty(k,v));
+  if(t.bg) document.body.style.backgroundImage=t.bg+',radial-gradient(circle,'+t.vars['--purple']+'1a 1px,transparent 1.4px)';
 }
 async function freeSwap(i,gid){ S.gauntlet.game_ids[i]=gid; await persistGames(); editGauntlet(); }
 async function freeAdd(gid){ S.gauntlet.game_ids.push(gid); await persistGames(); editGauntlet(); }
@@ -1205,7 +1246,7 @@ function fireConfetti(){
 }
 
 /* ============ BOOT ============ */
-(async function(){ await loadCore(); if(S.me&&S.me.cursor) applyCursorCSS(S.me.cursor); landing(); })();
+(async function(){ await loadCore(); if(S.me&&S.me.cursor) applyCursorCSS(S.me.cursor); if(S.me&&S.me.theme) applyThemeCSS(S.me.theme); landing(); })();
 </script>
 </body>
 </html>
