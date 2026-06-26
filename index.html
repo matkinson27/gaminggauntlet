@@ -28,7 +28,7 @@ body{
   background-size:auto, auto, 24px 24px;
   -webkit-font-smoothing:antialiased; overflow-x:hidden;
 }
-.app{max-width:1100px;margin:0 auto;padding:20px 16px 180px;min-height:100%;}
+.app{max-width:1100px;margin:0 auto;padding:20px 16px 40px;min-height:100%;}
 .center{min-height:90vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:18px;}
 h1,h2,h3{margin:0;}
 .pixel{font-family:var(--pixel);letter-spacing:1px;line-height:1.5;}
@@ -124,24 +124,140 @@ canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:90;}
   background:var(--panel2);border:2px solid var(--line);border-radius:8px;padding:8px;font-size:11px;color:var(--ink);z-index:30;font-weight:500;}
 .hovwrap:hover .hovtip{display:block;}
 .dropfeed-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid var(--line);font-size:13px;}
-.chatstrip{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:2px solid var(--line);z-index:50;display:flex;height:140px;}
-.chatsidebar{width:56px;flex:none;background:var(--bg);border-right:2px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px 0;overflow-y:auto;}
-.chatsidebar .chatav{width:38px;height:38px;border-radius:50%;cursor:default;position:relative;image-rendering:pixelated;object-fit:cover;border:2px solid var(--line);}
-.chatsidebar .chatav:hover::after{content:attr(data-name);position:absolute;left:52px;top:50%;transform:translateY(-50%);
-  background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;color:var(--ink);white-space:nowrap;z-index:60;}
-.chatmain{flex:1;display:flex;flex-direction:column;min-width:0;}
-.chatmsgs{flex:1;overflow-y:auto;padding:8px 14px;display:flex;flex-direction:column;gap:6px;}
-.chatrow{display:flex;align-items:flex-end;gap:6px;max-width:80%;}
+.chatpanel{position:fixed;right:0;top:0;bottom:0;width:320px;background:var(--bg2);border-left:2px solid var(--line);z-index:50;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .2s;}
+.chatpanel.open{transform:translateX(0);}
+.chattoggle{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:51;background:var(--pink);color:#fff;border:none;border-radius:10px 0 0 10px;padding:12px 8px;cursor:pointer;font-family:var(--body);font-weight:700;font-size:14px;writing-mode:vertical-rl;text-orientation:mixed;}
+.chatpanel.open~.chattoggle{right:320px;}
+.chatheader{padding:10px 14px;border-bottom:2px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex:none;}
+.chatheader span{font-weight:700;font-size:16px;}
+.chatmain{flex:1;display:flex;flex-direction:column;min-height:0;}
+.chatmsgs{flex:1;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:6px;}
+.chatrow{display:flex;align-items:flex-end;gap:6px;max-width:90%;}
 .chatrow.me{align-self:flex-end;flex-direction:row-reverse;}
-.chatrow .msgav{width:26px;height:26px;border-radius:50%;flex:none;image-rendering:pixelated;object-fit:cover;}
-.chatbubble{padding:9px 14px;border-radius:14px;font-size:17px;line-height:1.35;max-width:100%;word-break:break-word;}
+.chatrow .msgav{width:24px;height:24px;border-radius:50%;flex:none;image-rendering:pixelated;object-fit:cover;}
+.chatbubble{padding:9px 14px;border-radius:14px;font-size:15px;line-height:1.35;max-width:100%;word-break:break-word;}
 .chatrow.me .chatbubble{border-bottom-right-radius:4px;}
 .chatrow.other .chatbubble{border-bottom-left-radius:4px;}
-.chatbar{display:flex;gap:8px;padding:8px 12px;border-top:1px solid var(--line);}
-.chatbar input{flex:1;font-family:var(--body);font-size:18px;background:var(--panel);border:2px solid var(--line);border-radius:20px;padding:8px 14px;color:var(--ink);}
+.chatbar{display:flex;gap:8px;padding:8px 10px;border-top:1px solid var(--line);flex:none;}
+.chatbar input{flex:1;font-family:var(--body);font-size:16px;background:var(--panel);border:2px solid var(--line);border-radius:20px;padding:8px 14px;color:var(--ink);}
 .chatbar input:focus{outline:2px solid var(--purple);border-color:var(--purple);}
 .chatbar button{flex:none;}
 @media(max-width:560px){ .gtable input{width:64px;} .app{padding:14px 10px 70px;} }
+
+/* ---- mode chooser ---- */
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:760px;margin:10px auto;}
+.mode-card{background:var(--bg2);border:2px solid var(--line);border-radius:18px;padding:22px 18px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;color:var(--ink);font-family:var(--body);transition:transform .1s,border-color .15s,box-shadow .15s;}
+.mode-card:hover{transform:translateY(-3px);border-color:var(--purple);box-shadow:0 10px 30px rgba(0,0,0,.35);}
+.mode-art{width:100%;max-width:200px;height:auto;}
+.mode-name{font-family:var(--pixel);font-size:18px;color:#fff;}
+.mode-sub{color:var(--muted);font-size:16px;line-height:1.4;}
+@media(max-width:600px){ .mode-grid{grid-template-columns:1fr;} }
+
+/* ---- lobby ---- */
+.lobby-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
+@media(max-width:780px){ .lobby-grid{grid-template-columns:1fr;} }
+.lobby-players{display:flex;flex-direction:column;gap:8px;}
+.lobby-pl{display:flex;align-items:center;gap:10px;background:var(--bg2);border:2px solid var(--line);border-radius:12px;padding:8px 12px;}
+.tag-host{font-family:var(--pixel);font-size:10px;color:#3a2700;background:var(--gold);padding:2px 6px;border-radius:6px;}
+.ready-dot{margin-left:auto;width:26px;height:26px;border-radius:50%;border:2px solid var(--line);color:var(--green);
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;}
+.ready-dot.on{border-color:var(--green);background:rgba(127,224,163,.15);}
+.spin{width:34px;height:34px;border-radius:50%;border:4px solid var(--line);border-top-color:var(--pink);animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ---- ribbon header (thin: sized to the logo) ---- */
+.ribbon{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;background:var(--bg2);
+  border:2px solid var(--line);border-radius:14px;padding:5px 12px;margin-bottom:16px;min-height:52px;}
+.ribbon-l{flex:1;display:flex;justify-content:flex-start;min-width:0;}
+.ribbon-c{flex:0 0 auto;display:flex;align-items:center;gap:8px;}
+.ribbon-c .rzlogo{height:40px;width:40px;border-radius:50%;image-rendering:pixelated;box-shadow:0 0 0 2px var(--pink);}
+.ribbon-c .ttl{font-family:var(--pixel);font-size:12px;color:#fff;max-width:34vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ribbon-r{flex:1;display:flex;justify-content:flex-end;align-items:center;gap:8px;min-width:0;}
+.ribbon .coin{color:var(--gold);font-weight:800;cursor:pointer;font-size:17px;white-space:nowrap;}
+.ribbon .iconbtn{background:transparent;border:2px solid var(--line);border-radius:10px;color:var(--muted);font-weight:700;cursor:pointer;padding:5px 9px;font-size:17px;line-height:1;}
+.ribbon .iconbtn:hover{color:#fff;border-color:var(--purple);}
+.ribbon .pname{font-weight:700;font-size:15px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ribbon .av.sm{cursor:pointer;}
+@media(max-width:700px){ .ribbon .pname,.ribbon-l .lbl{display:none;} .ribbon-c .ttl{display:none;} }
+.gearwrap{position:relative;}
+.gearmenu{position:absolute;right:0;top:46px;background:var(--panel2);border:2px solid var(--line);border-radius:12px;
+  padding:6px;min-width:200px;z-index:60;box-shadow:0 12px 34px rgba(0,0,0,.55);}
+.gearmenu button{display:block;width:100%;text-align:left;background:transparent;border:none;color:var(--ink);
+  font-family:var(--body);font-weight:600;font-size:16px;padding:9px 12px;border-radius:8px;cursor:pointer;}
+.gearmenu button:hover{background:var(--panel);}
+.gearmenu hr{border:none;border-top:1px solid var(--line);margin:4px 2px;}
+
+/* ---- board layout: sticky scoreboard ribbon + rounds grid + chat ---- */
+.wideapp .app{max-width:1400px;}
+.sbribbon{position:sticky;top:64px;z-index:20;display:flex;gap:10px;justify-content:center;overflow-x:auto;overflow-y:visible;
+  padding:10px 2px;margin-bottom:14px;background:linear-gradient(var(--bg),var(--bg) 72%,transparent);}
+.boardmain{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start;}
+.rounds-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;min-width:0;align-items:start;}
+.rounds-grid .gblock{margin-bottom:0;}
+.rounds-grid .gblock.wide{grid-column:1 / -1;}
+.rounds-grid .gtable{display:block;overflow-x:auto;}
+.chat-col{position:sticky;top:130px;height:calc(100vh - 150px);}
+.chat-col .chatdock{height:100%;background:var(--bg2);border:2px solid var(--line);border-radius:16px;display:flex;flex-direction:column;overflow:hidden;}
+.iconbtn.txt{font-size:15px;font-weight:700;white-space:nowrap;}
+@media(max-width:1000px){
+  .boardmain{grid-template-columns:1fr;}
+  .rounds-grid{grid-template-columns:1fr;}
+  .chat-col{display:none;}
+  .sbribbon{top:60px;justify-content:flex-start;}
+}
+
+/* ---- scoreboard bubble (one per player, animation-ready) ---- */
+.sbcard{position:relative;flex:0 1 300px;min-width:200px;max-width:360px;border:2px solid var(--line);border-radius:14px;
+  padding:10px 12px;background:var(--bg2);overflow:visible;transition:box-shadow .25s,background .25s;}
+.sbcard .np{position:absolute;inset:0;z-index:0;opacity:.5;border-radius:12px;}
+.sbcard .npc{position:relative;z-index:1;}
+.sbcard.lead{box-shadow:0 0 0 2px var(--gold) inset;}
+.sbcard.flash-win{box-shadow:0 0 0 3px var(--green) inset;background:rgba(127,224,163,.20);}
+.sbcard.flash-lose{box-shadow:0 0 0 3px var(--red) inset;background:rgba(192,42,68,.16);}
+.sbcard .sb-top{display:flex;align-items:center;gap:10px;}
+.sbcard .sb-mid{min-width:0;display:flex;flex-direction:column;}
+.sbcard .sb-name{font-weight:800;font-size:18px;display:flex;align-items:center;gap:4px;text-shadow:0 1px 3px rgba(0,0,0,.6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sbcard .sb-tot{font-family:var(--pixel);font-size:22px;margin-left:auto;text-shadow:0 1px 3px rgba(0,0,0,.6);}
+.sbcard .gems{margin-top:4px;}
+.sbcard .leadtag{margin-left:6px;}
+.winfx{position:absolute;left:-6%;right:-6%;top:-65%;height:170%;z-index:5;pointer-events:none;}
+.medal{display:inline-flex;vertical-align:middle;}
+
+/* ---- lock / round complete ---- */
+.lockbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 16px;border-top:2px solid var(--line);background:var(--panel);}
+.lockpill{display:inline-flex;align-items:center;gap:5px;font-size:14px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid var(--line);color:var(--muted);}
+.lockpill.on{color:var(--green);border-color:var(--green);background:rgba(127,224,163,.12);}
+.donebadge{font-family:var(--pixel);font-size:11px;color:var(--gold);display:inline-flex;align-items:center;gap:6px;}
+.gblock.done{border-color:var(--gold);}
+.gblock.done .ghead{background:rgba(245,196,81,.12);}
+
+/* ---- shop tabs + tiles ---- */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.tab{font-family:var(--body);font-weight:700;font-size:17px;padding:9px 16px;border-radius:20px;border:2px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;}
+.tab.on{background:var(--purple);color:#fff;border-color:var(--purple);}
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:12px;}
+.shop-tile{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;}
+.shop-tile.active{border-color:var(--gold);box-shadow:0 0 0 2px rgba(245,196,81,.25);}
+.shop-tile.locked{opacity:.55;filter:grayscale(.5);}
+.shop-tile .nm{font-size:16px;font-weight:700;color:var(--ink);}
+.swatch{width:90px;height:90px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:var(--bg2);border:1px solid var(--line);}
+.np-prev{width:100%;height:56px;border-radius:10px;border:1px solid var(--line);}
+.anim-prev{width:100%;height:56px;border-radius:10px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:5px;background:#0c0a18;overflow:hidden;}
+.anim-dot{width:11px;height:11px;border-radius:50%;}
+.npcolor{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:4px;}
+.npcolor span{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
+.npcolor span.on{border-color:#fff;}
+
+/* ---- win animation: trumpets + flash ---- */
+.trumpet{position:fixed;top:50%;width:130px;height:auto;z-index:96;pointer-events:none;opacity:0;
+  transition:transform .5s cubic-bezier(.2,.9,.3,1.3),opacity .3s;}
+.trumpet.l{left:0;transform:translateY(-50%) translateX(-170%);}
+.trumpet.r{right:0;transform:translateY(-50%) translateX(170%) scaleX(-1);}
+.trumpet.in{opacity:1;}
+.trumpet.in.l{transform:translateY(-50%) translateX(6%);}
+.trumpet.in.r{transform:translateY(-50%) translateX(-6%) scaleX(-1);}
+@media(prefers-reduced-motion:reduce){ .trumpet{transition:opacity .2s;} .spin{animation:none;} }
 </style>
 </head>
 <body>
@@ -176,13 +292,20 @@ const RARE_NAMES = {gold_party_mouse:'Goldentail',gold_party_cat:'Goldenpaw',
 const ALL_RARES = [...RARES_GAUNTLET.map(r=>r.id), ...Object.values(GAME_RARES)];
 const DROP_RATE = 1/200;
 const COINS = {reroll:1000, replay:1200, removeRandom:1500, removeChoice:1800, shot:1000, rerollAll:2000, rerollAllChoice:2500};
+/* Themes: one distinct hue each + three specials. CSS var swap only. */
 const THEMES = [
-  {id:'theme_red',name:'Crimson',cost:1000,vars:{'--bg':'#2b0f0f','--bg2':'#3d1818','--panel':'#4d2020','--panel2':'#5c2a2a','--line':'#8a3030','--pink':'#ff5050','--purple':'#cc3030','--blue':'#ff7070','--muted':'#d4a0a0'}},
-  {id:'theme_blue',name:'Deep Ocean',cost:1000,vars:{'--bg':'#0a1628','--bg2':'#122040','--panel':'#1a2e58','--panel2':'#223870','--line':'#3050a0','--pink':'#60a0ff','--purple':'#4080e0','--blue':'#70b0ff','--muted':'#a0bce0'}},
-  {id:'theme_marble',name:'Red/Blue Marble',cost:1000,vars:{'--bg':'#1a0e28','--bg2':'#281430','--panel':'#2e1a48','--panel2':'#3a2058','--line':'#6030a0','--pink':'#ff5070','--purple':'#8040d0','--blue':'#5080ff','--muted':'#c0a0e0'},bg:'linear-gradient(135deg,rgba(180,30,60,.15),rgba(40,60,180,.15))'},
-  {id:'theme_green',name:'Emerald',cost:1000,vars:{'--bg':'#0a1e10','--bg2':'#122e18','--panel':'#1a3e22','--panel2':'#224e2c','--line':'#308040','--pink':'#50d070','--purple':'#30a050','--blue':'#70e090','--muted':'#a0d4b0'}},
-  {id:'theme_doppler',name:'Green Doppler',cost:1000,vars:{'--bg':'#0a1a14','--bg2':'#10281e','--panel':'#183828','--panel2':'#204832','--line':'#28804a','--pink':'#40e080','--purple':'#20c060','--blue':'#60ffa0','--muted':'#90d4b8'},bg:'linear-gradient(160deg,rgba(0,80,40,.2),rgba(0,200,100,.1),rgba(0,60,30,.2))'},
-  {id:'theme_chrome',name:'Chrome',cost:1000,vars:{'--bg':'#1a1a20','--bg2':'#24242c','--panel':'#2e2e38','--panel2':'#383844','--line':'#585868','--pink':'#d0d0e0','--purple':'#a0a0b8','--blue':'#c0c0d8','--muted':'#9898a8','--gold':'#e0d0a0','--ink':'#eeeef4'},bg:'linear-gradient(160deg,rgba(180,180,200,.08),rgba(100,100,120,.08))'}
+  {id:'theme_crimson',name:'Crimson',cost:1000,vars:{'--bg':'#2b0f0f','--bg2':'#3d1818','--panel':'#4d2020','--panel2':'#5c2a2a','--line':'#8a3030','--pink':'#ff5a5a','--purple':'#d03838','--blue':'#ff8080','--muted':'#d4a0a0'}},
+  {id:'theme_sunset',name:'Sunset',cost:1000,vars:{'--bg':'#21110a','--bg2':'#331a0f','--panel':'#46241455','--panel2':'#522a18','--line':'#955020','--pink':'#ff8a4a','--purple':'#e06a30','--blue':'#ffab5a','--muted':'#e0b39a'},bg:'linear-gradient(160deg,rgba(255,120,40,.10),rgba(255,60,30,.08))'},
+  {id:'theme_amber',name:'Amber',cost:1000,vars:{'--bg':'#221a08','--bg2':'#33270e','--panel':'#443414','--panel2':'#52401a','--line':'#9a7820','--pink':'#ffc040','--purple':'#e0a020','--blue':'#ffd970','--muted':'#dcc890','--gold':'#ffd24a'}},
+  {id:'theme_emerald',name:'Emerald',cost:1000,vars:{'--bg':'#0a1e12','--bg2':'#122e1c','--panel':'#1a3e26','--panel2':'#224e30','--line':'#2e8a4e','--pink':'#48e088','--purple':'#28b060','--blue':'#70f0a8','--muted':'#a0d4b4'}},
+  {id:'theme_teal',name:'Teal',cost:1000,vars:{'--bg':'#08201e','--bg2':'#0e302e','--panel':'#14403e','--panel2':'#1a504e','--line':'#208a86','--pink':'#40e0d0','--purple':'#20b0a8','--blue':'#70f0e8','--muted':'#98d0cc'}},
+  {id:'theme_ocean',name:'Deep Ocean',cost:1000,vars:{'--bg':'#0a1628','--bg2':'#122040','--panel':'#1a2e58','--panel2':'#223870','--line':'#3050a0','--pink':'#60a0ff','--purple':'#4080e0','--blue':'#70b0ff','--muted':'#a0bce0'}},
+  {id:'theme_midnight',name:'Midnight',cost:1000,vars:{'--bg':'#080818','--bg2':'#101028','--panel':'#181838','--panel2':'#202048','--line':'#303068','--pink':'#6070ff','--purple':'#4050d0','--blue':'#8090ff','--muted':'#8088c0','--ink':'#d0d0f0'}},
+  {id:'theme_royal',name:'Royal Purple',cost:1000,vars:{'--bg':'#170a28','--bg2':'#221038','--panel':'#2e1850','--panel2':'#3a2068','--line':'#6a38b0','--pink':'#b070ff','--purple':'#8040e0','--blue':'#c090ff','--muted':'#bca0e0'}},
+  {id:'theme_rose',name:'Rose Gold',cost:1000,vars:{'--bg':'#1e1018','--bg2':'#2e1828','--panel':'#3e2038','--panel2':'#4e2848','--line':'#7a4060','--pink':'#f0a0b8','--purple':'#d08098','--blue':'#f0b8c8','--muted':'#c098a8','--gold':'#e8ca98'}},
+  {id:'theme_chrome',name:'Chrome',cost:1000,vars:{'--bg':'#1a1a20','--bg2':'#24242c','--panel':'#2e2e38','--panel2':'#383844','--line':'#585868','--pink':'#d0d0e0','--purple':'#a0a0b8','--blue':'#c0c0d8','--muted':'#9898a8','--gold':'#e0d0a0','--ink':'#eeeef4'},bg:'linear-gradient(160deg,rgba(180,180,200,.08),rgba(100,100,120,.08))'},
+  {id:'theme_neon',name:'Neon',cost:1000,vars:{'--bg':'#0a0a14','--bg2':'#10101e','--panel':'#16162a','--panel2':'#1c1c36','--line':'#303060','--pink':'#ff40ff','--purple':'#8040ff','--blue':'#40ffff','--muted':'#9090c0','--gold':'#ffff40'},bg:'linear-gradient(160deg,rgba(255,64,255,.06),rgba(64,255,255,.06))'},
+  {id:'theme_marble',name:'Marble',cost:1000,vars:{'--bg':'#1a0e28','--bg2':'#281430','--panel':'#2e1a48','--panel2':'#3a2058','--line':'#6030a0','--pink':'#ff5070','--purple':'#8040d0','--blue':'#5080ff','--muted':'#c0a0e0'},bg:'linear-gradient(135deg,rgba(180,30,60,.15),rgba(40,60,180,.15))'}
 ];
 const SHOP_CHARS = [
   {id:'aa',name:'Jinx',cost:250},
@@ -192,15 +315,80 @@ const SHOP_CHARS = [
   {id:'aaaaaa',name:'Pint',cost:250},
   {id:'aaaaaaa',name:'Mugsy',cost:250}
 ];
+/* Buyable cursors (flat 500). All generic shapes, no logos. */
 const CURSORS = [
   {id:'cursor_rz',name:'RZ Logo',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><circle cx='16' cy='16' r='14' fill='%239d6fd9' stroke='%23f076a0' stroke-width='2'/><text x='16' y='21' text-anchor='middle' font-size='14' font-weight='bold' fill='%23f4b0cc' font-family='sans-serif'>RZ</text></svg>`},
   {id:'cursor_rift',name:'Rift',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='40' height='20'><text x='2' y='16' font-size='16' font-weight='bold' fill='%23f076a0' stroke='%239d6fd9' stroke-width='1' font-family='sans-serif'>RIFT</text></svg>`},
   {id:'cursor_knife',name:'Doppler Knife',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><defs><linearGradient id='dp' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%234060ff'/><stop offset='50%' stop-color='%23a040e0'/><stop offset='100%' stop-color='%23f040a0'/></linearGradient></defs><path d='M6 26L26 6l2 2-16 20z' fill='url(%23dp)'/><path d='M4 28l4-4 2 2-4 4z' fill='%23888'/></svg>`},
   {id:'cursor_shuriken',name:'Shuriken',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><path d='M16 2l4 10 10-4-10 4 4 10-4-10-10 4 10-4-4-10 4 10z' fill='%23c0c0c0' stroke='%23666' stroke-width='1'/><circle cx='16' cy='16' r='3' fill='%23333'/></svg>`},
-  {id:'cursor_firework',name:'Firework',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><line x1='16' y1='16' x2='16' y2='4' stroke='%235b8def' stroke-width='2'/><line x1='16' y1='16' x2='26' y2='8' stroke='%239d6fd9' stroke-width='2'/><line x1='16' y1='16' x2='28' y2='16' stroke='%23f076a0' stroke-width='2'/><line x1='16' y1='16' x2='26' y2='24' stroke='%235b8def' stroke-width='2'/><line x1='16' y1='16' x2='6' y2='8' stroke='%23f076a0' stroke-width='2'/><line x1='16' y1='16' x2='4' y2='16' stroke='%239d6fd9' stroke-width='2'/><line x1='16' y1='16' x2='6' y2='24' stroke='%235b8def' stroke-width='2'/><line x1='16' y1='16' x2='16' y2='28' stroke='%23f076a0' stroke-width='2'/><circle cx='16' cy='16' r='2' fill='%23fff'/></svg>`}
+  {id:'cursor_firework',name:'Firework',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><line x1='16' y1='16' x2='16' y2='4' stroke='%235b8def' stroke-width='2'/><line x1='16' y1='16' x2='26' y2='8' stroke='%239d6fd9' stroke-width='2'/><line x1='16' y1='16' x2='28' y2='16' stroke='%23f076a0' stroke-width='2'/><line x1='16' y1='16' x2='26' y2='24' stroke='%235b8def' stroke-width='2'/><line x1='16' y1='16' x2='6' y2='8' stroke='%23f076a0' stroke-width='2'/><line x1='16' y1='16' x2='4' y2='16' stroke='%239d6fd9' stroke-width='2'/><line x1='16' y1='16' x2='6' y2='24' stroke='%235b8def' stroke-width='2'/><line x1='16' y1='16' x2='16' y2='28' stroke='%23f076a0' stroke-width='2'/><circle cx='16' cy='16' r='2' fill='%23fff'/></svg>`},
+  {id:'cursor_crosshair',name:'Crosshair',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><circle cx='16' cy='16' r='9' fill='none' stroke='%237fe0a3' stroke-width='2'/><line x1='16' y1='1' x2='16' y2='9' stroke='%237fe0a3' stroke-width='2'/><line x1='16' y1='23' x2='16' y2='31' stroke='%237fe0a3' stroke-width='2'/><line x1='1' y1='16' x2='9' y2='16' stroke='%237fe0a3' stroke-width='2'/><line x1='23' y1='16' x2='31' y2='16' stroke='%237fe0a3' stroke-width='2'/><circle cx='16' cy='16' r='1.6' fill='%237fe0a3'/></svg>`},
+  {id:'cursor_scimitar',name:'Scimitar',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><path d='M4 28 C12 20 24 12 30 4 C24 14 18 22 8 30 Z' fill='%23f5c451' stroke='%23a8801e' stroke-width='1'/><rect x='2' y='26' width='8' height='3' rx='1' fill='%238a5a20' transform='rotate(-45 6 27)'/></svg>`},
+  {id:'cursor_crystal',name:'Arcane Crystal',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><path d='M16 2 L26 13 L16 30 L6 13 Z' fill='%237aa0ff' stroke='%23c0d8ff' stroke-width='1.5'/><path d='M16 2 L16 30 M6 13 L26 13' stroke='%23c0d8ff' stroke-width='1' opacity='.7'/></svg>`},
+  {id:'cursor_pickaxe',name:'Pickaxe',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><path d='M3 7 C12 3 22 3 29 7 C22 9 12 9 3 7Z' fill='%235fd0e0' stroke='%232a8a96' stroke-width='1'/><rect x='14' y='7' width='3.5' height='23' rx='1' fill='%23b07a40'/></svg>`},
+  {id:'cursor_flag',name:'Checkered Flag',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><rect x='5' y='4' width='4' height='26' fill='%23888'/><g><rect x='9' y='5' width='5' height='5' fill='%23fff'/><rect x='19' y='5' width='5' height='5' fill='%23fff'/><rect x='14' y='10' width='5' height='5' fill='%23fff'/><rect x='9' y='15' width='5' height='5' fill='%23fff'/><rect x='19' y='15' width='5' height='5' fill='%23fff'/></g><rect x='9' y='5' width='15' height='15' fill='none' stroke='%23222' stroke-width='.5'/></svg>`},
+  {id:'cursor_star',name:'Impact Star',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><path d='M16 2 L19 13 L30 16 L19 19 L16 30 L13 19 L2 16 L13 13 Z' fill='%23ff8a5b' stroke='%23ffd0a0' stroke-width='1'/></svg>`},
+  {id:'cursor_gamepad',name:'Gamepad',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='34' height='24'><rect x='2' y='6' width='30' height='14' rx='7' fill='%239d6fd9' stroke='%23f076a0' stroke-width='1.5'/><circle cx='10' cy='13' r='2' fill='%23fff'/><circle cx='24' cy='10' r='1.6' fill='%23fff'/><circle cx='27' cy='13' r='1.6' fill='%23fff'/><circle cx='24' cy='16' r='1.6' fill='%23fff'/></svg>`},
+  {id:'cursor_headset',name:'Headset',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='30' height='30'><path d='M5 18 V14 a10 10 0 0 1 20 0 v4' fill='none' stroke='%235b8def' stroke-width='2.5'/><rect x='3' y='17' width='5' height='9' rx='2' fill='%235b8def'/><rect x='22' y='17' width='5' height='9' rx='2' fill='%235b8def'/></svg>`},
+  {id:'cursor_heart',name:'Pixel Heart',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='28' height='26'><g fill='%23f06b9a'><rect x='4' y='4' width='6' height='6'/><rect x='18' y='4' width='6' height='6'/><rect x='2' y='10' width='24' height='6'/><rect x='6' y='16' width='16' height='5'/><rect x='10' y='21' width='8' height='4'/></g></svg>`},
+  {id:'cursor_crown',name:'Crown',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='32' height='26'><path d='M4 22 L4 9 L11 15 L16 5 L21 15 L28 9 L28 22 Z' fill='%23f5c451' stroke='%23a8801e' stroke-width='1'/><circle cx='16' cy='5' r='2' fill='%23ff8a5b'/></svg>`},
+  {id:'cursor_bolt',name:'Lightning',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='24' height='32'><path d='M14 2 L4 18 L11 18 L9 30 L20 12 L13 12 Z' fill='%23ffd24a' stroke='%23a8801e' stroke-width='1'/></svg>`},
+  {id:'cursor_paw',name:'Cat Paw',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='30' height='30'><ellipse cx='15' cy='20' rx='9' ry='7' fill='%23f06b9a'/><circle cx='6' cy='13' r='3' fill='%23f06b9a'/><circle cx='12' cy='8' r='3' fill='%23f06b9a'/><circle cx='18' cy='8' r='3' fill='%23f06b9a'/><circle cx='24' cy='13' r='3' fill='%23f06b9a'/></svg>`},
+  {id:'cursor_mouse',name:'Pixel Mouse',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='32' height='28'><ellipse cx='17' cy='18' rx='10' ry='8' fill='%23b3a3df'/><circle cx='7' cy='9' r='5' fill='%23b3a3df'/><circle cx='25' cy='9' r='5' fill='%23b3a3df'/><circle cx='17' cy='17' r='1.6' fill='%23160e2b'/><path d='M27 20 q6 1 4 6' fill='none' stroke='%23b3a3df' stroke-width='2'/></svg>`},
+  {id:'cursor_d20',name:'D20',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='30' height='32'><path d='M15 2 L28 10 L28 22 L15 30 L2 22 L2 10 Z' fill='%239d6fd9' stroke='%23f076a0' stroke-width='1.5'/><path d='M15 2 L15 30 M2 10 L28 22 M28 10 L2 22' stroke='%23f076a0' stroke-width='.8' opacity='.5'/><text x='15' y='20' text-anchor='middle' font-size='9' font-weight='bold' fill='%23fff' font-family='sans-serif'>20</text></svg>`},
+  {id:'cursor_coin',name:'Coin',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28'><circle cx='14' cy='14' r='12' fill='%23f5c451' stroke='%23a8801e' stroke-width='2'/><text x='14' y='19' text-anchor='middle' font-size='13' font-weight='bold' fill='%238a5a20' font-family='sans-serif'>$</text></svg>`},
+  {id:'cursor_sparkle',name:'Sparkle',cost:500,svg:`<svg xmlns='http://www.w3.org/2000/svg' width='30' height='30'><path d='M15 2 C16 10 20 14 28 15 C20 16 16 20 15 28 C14 20 10 16 2 15 C10 14 14 10 15 2 Z' fill='%23fff0a0' stroke='%23f5c451' stroke-width='1'/></svg>`}
 ];
+/* Rare cursors: earned only via drops, like rare icons. 1-in-200 per qualifying win. */
+const RARE_CURSORS = [
+  {id:'cursor_rare_prism',name:'Prismatic',source:'gauntlet',svg:`<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><defs><linearGradient id='pr' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23ff5a5a'/><stop offset='25%' stop-color='%23ffd24a'/><stop offset='50%' stop-color='%2348e088'/><stop offset='75%' stop-color='%235b8def'/><stop offset='100%' stop-color='%23b070ff'/></linearGradient></defs><path d='M16 2 L19 13 L30 16 L19 19 L16 30 L13 19 L2 16 L13 13 Z' fill='url(%23pr)' stroke='%23fff' stroke-width='.8'/></svg>`},
+  {id:'cursor_rare_phoenix',name:'Phoenix',source:'gauntlet',svg:`<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><defs><linearGradient id='ph' x1='0' y1='1' x2='0' y2='0'><stop offset='0%' stop-color='%23c02a44'/><stop offset='50%' stop-color='%23ff8a3a'/><stop offset='100%' stop-color='%23ffe070'/></linearGradient></defs><path d='M16 30 C8 22 4 16 8 8 C10 14 12 14 13 11 C14 16 18 16 19 11 C20 14 22 14 24 8 C28 16 24 22 16 30 Z' fill='url(%23ph)'/></svg>`},
+  {id:'cursor_rare_galaxy',name:'Galaxy',source:'gauntlet',svg:`<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><defs><radialGradient id='gx'><stop offset='0%' stop-color='%23fff'/><stop offset='40%' stop-color='%23b070ff'/><stop offset='100%' stop-color='%23160e2b'/></radialGradient></defs><circle cx='16' cy='16' r='14' fill='url(%23gx)'/><circle cx='10' cy='11' r='1' fill='%23fff'/><circle cx='22' cy='20' r='1.2' fill='%23fff'/><circle cx='20' cy='9' r='.8' fill='%23fff'/><circle cx='9' cy='22' r='.8' fill='%23fff'/></svg>`},
+  {id:'cursor_rare_diamond',name:'Diamond',source:'gauntlet',svg:`<svg xmlns='http://www.w3.org/2000/svg' width='30' height='32'><defs><linearGradient id='di' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23d0f8ff'/><stop offset='100%' stop-color='%235fd0e0'/></linearGradient></defs><path d='M6 4 H24 L28 11 L15 30 L2 11 Z' fill='url(%23di)' stroke='%23fff' stroke-width='1'/><path d='M2 11 H28 M6 4 L15 30 L24 4' stroke='%23fff' stroke-width='.6' opacity='.6'/></svg>`}
+];
+const RARE_CURSOR_NAMES = Object.fromEntries(RARE_CURSORS.map(c=>[c.id,c.name]));
+const ALL_RARE_CURSOR_IDS = RARE_CURSORS.map(c=>c.id);
+function cursorById(id){ return CURSORS.find(c=>c.id===id)||RARE_CURSORS.find(c=>c.id===id); }
+/* Nameplates: the card behind name+avatar on the scoreboard. Patterns derive from the player's color.
+   Default (null) renders a solid swatch of the player's color. 'solid:#hex' picks a fixed solid. */
+const NAMEPLATES = [
+  {id:'np_stripes',name:'Diagonal Stripes',cost:500,css:c=>`repeating-linear-gradient(45deg,${c}55 0 10px,${c}22 10px 20px)`},
+  {id:'np_dots',name:'Dots',cost:500,css:c=>`radial-gradient(${c}66 2px,transparent 2.5px) 0 0/14px 14px,${c}1a`},
+  {id:'np_grid',name:'Grid',cost:500,css:c=>`linear-gradient(${c}44 1px,transparent 1px) 0 0/16px 16px,linear-gradient(90deg,${c}44 1px,transparent 1px) 0 0/16px 16px,${c}14`},
+  {id:'np_chevron',name:'Chevrons',cost:500,css:c=>`repeating-linear-gradient(135deg,${c}55 0 8px,transparent 8px 16px),repeating-linear-gradient(45deg,${c}33 0 8px,transparent 8px 16px)`},
+  {id:'np_sweep',name:'Gradient Sweep',cost:500,css:c=>`linear-gradient(120deg,${c}88,${c}11 70%)`},
+  {id:'np_carbon',name:'Carbon',cost:500,css:c=>`repeating-linear-gradient(45deg,${c}33 0 3px,transparent 3px 6px),repeating-linear-gradient(-45deg,${c}33 0 3px,transparent 3px 6px),#10101a`},
+  {id:'np_hex',name:'Hexagons',cost:500,css:c=>`radial-gradient(circle at 50% 0,${c}44 6px,transparent 7px) 0 0/24px 28px,radial-gradient(circle at 0 50%,${c}33 6px,transparent 7px) 0 0/24px 28px,${c}12`},
+  {id:'np_scanline',name:'Scanlines',cost:500,css:c=>`repeating-linear-gradient(0deg,${c}55 0 2px,transparent 2px 5px),${c}14`},
+  {id:'np_starfield',name:'Starfield',cost:500,css:c=>`radial-gradient(1.5px 1.5px at 20% 30%,${c} 50%,transparent),radial-gradient(1.5px 1.5px at 70% 60%,${c} 50%,transparent),radial-gradient(1px 1px at 45% 80%,${c} 50%,transparent),#0c0a1a`},
+  {id:'np_camo',name:'Abstract Camo',cost:500,css:c=>`radial-gradient(circle at 20% 30%,${c}55 12px,transparent 14px),radial-gradient(circle at 60% 70%,${c}44 16px,transparent 18px),radial-gradient(circle at 85% 25%,${c}55 10px,transparent 12px),${c}12`},
+  {id:'np_circuit',name:'Circuit',cost:500,css:c=>`linear-gradient(90deg,${c}44 2px,transparent 2px) 0 0/20px 20px,linear-gradient(${c}44 2px,transparent 2px) 10px 10px/20px 20px,radial-gradient(${c} 2px,transparent 2.5px) 0 0/20px 20px,#0d0b18`},
+  {id:'np_waves',name:'Waves',cost:500,css:c=>`radial-gradient(circle at 50% 120%,${c}55,transparent 60%),repeating-radial-gradient(circle at 50% 120%,transparent 0 14px,${c}22 14px 16px)`}
+];
+function nameplateById(id){ return NAMEPLATES.find(n=>n.id===id); }
+function nameplateCSS(plate, color){
+  if(!plate) return color;
+  if(plate.startsWith('solid:')) return plate.slice(6);
+  const n=nameplateById(plate); return n?n.css(color):color;
+}
+/* Win animations: equip on profile, plays on your scoreboard bubble when you win a round.
+   Default (none) = winner flashes green, losers red. Every firework set below is purchasable. */
+const WIN_DEFAULT='';
+const WIN_ANIMS = [
+  {id:'anim_multi',name:'Full Spectrum',cost:800,colors:['#ff4a4a','#ffb020','#f5e84a','#48e088','#5b8def','#b070ff','#ff70d0']},
+  {id:'anim_blue',name:'Blue Bash',cost:800,colors:['#3a6fff','#5b8def','#70b0ff','#a0c8ff','#d0e4ff']},
+  {id:'anim_red',name:'Red Alert',cost:800,colors:['#ff3a3a','#ff5a5a','#ff8a5b','#ffb060','#ffd0a0']},
+  {id:'anim_pink',name:'Pink Pop',cost:800,colors:['#ff4aa0','#f06b9a','#ff8ac0','#ffb0d8','#ffd0e8']},
+  {id:'anim_aqua',name:'Frost',cost:800,colors:['#40e0d0','#48e088','#ffffff','#a0f0e0','#70f0c0']},
+  {id:'anim_gold',name:'Golden Hour',cost:800,colors:['#ffd24a','#f5c451','#ffb020','#ffe88a','#fff0c0']},
+  {id:'anim_neon',name:'Neon Night',cost:800,colors:['#ff40ff','#40ffff','#b070ff','#40ff90','#ffffff']},
+  {id:'anim_classic',name:'Rainbow Classic',cost:800,colors:['#f06b9a','#5b8def','#9d6fd9','#f5c451','#7fe0a3']}
+];
+function winAnimById(id){ return WIN_ANIMS.find(a=>a.id===id)||WIN_ANIMS[0]; }
+function profileWinColors(p){ return winAnimById((p&&p.win_anim)||'anim_multi').colors; }
 const MATCHES = {lol:2, fn:3}; // games with multiple matches per round
 const COLORS = ['#f06b9a','#5b8def','#9d6fd9','#f5c451','#7fe0a3','#ff8a5b','#5fd0e0','#e06bd6'];
+const NAMEPLATE_PRESETS = ['#f06b9a','#5b8def','#9d6fd9','#f5c451','#7fe0a3','#ff8a5b','#5fd0e0','#e06bd6','#2a1b52','#222'];
 
 /* scoring (mirrors the sheet) */
 function scaled(gameId, raw, meta, handicap){
@@ -218,7 +406,7 @@ function scaled(gameId, raw, meta, handicap){
 }
 
 /* ============ STATE ============ */
-const S={ me:null, profiles:[], defs:[], gauntlet:null, scores:[], chan:null, myDrops:[], chat:[] };
+const S={ me:null, profiles:[], defs:[], gauntlet:null, scores:[], chan:null, myDrops:[], chat:[], badges:{} };
 const $=sel=>document.querySelector(sel);
 const app=$('#app');
 function toast(m){let t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2200);}
@@ -232,6 +420,14 @@ function avatar(p, size){
   const initial=(p.name||'?').slice(0,1).toUpperCase();
   const img=p.sprite?`<img src="./${p.sprite}.png" onerror="this.style.display='none';this.parentNode.textContent='${initial}'" style="width:100%;height:100%;border-radius:50%;image-rendering:pixelated;object-fit:cover">`:'';
   return `<div class="av${cls}" data-i="${initial}" style="background:${p.color}">${img||initial}</div>`;
+}
+/* drops can be character icons (png) or rare cursors (inline svg) */
+function isCursorDrop(id){ return ALL_RARE_CURSOR_IDS.includes(id); }
+function dropName(id){ return RARE_NAMES[id]||RARE_CURSOR_NAMES[id]||id; }
+function dropVisual(id){
+  if(isCursorDrop(id)){ const c=cursorById(id);
+    return `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center">${c?`<img src="data:image/svg+xml,${c.svg}" style="width:72%;height:72%">`:'!'}</div>`; }
+  return `<img src="./${id}.png" onerror="this.style.display='none';this.parentNode.textContent='!'" style="width:100%;height:100%;border-radius:50%;image-rendering:pixelated;object-fit:cover">`;
 }
 
 /* ============ DATA ============ */
@@ -250,16 +446,31 @@ async function loadMyDrops(){
   const {data}=await sb.from('drops').select('character_id,roll_count,won_on_roll,created_at,source,pool').eq('profile_id',S.me.id);
   S.myDrops=data||[];
 }
+/* aggregate best single-round scores per game -> each player's best medal (rank 1/2/3) */
+async function loadBadges(){
+  S.badges={};
+  const {data}=await sb.from('scores').select('profile_id,game_id,scaled');
+  if(!data) return;
+  const byGame={};
+  data.forEach(r=>{ if(r.scaled==null||r.scaled<=0)return; (byGame[r.game_id]=byGame[r.game_id]||[]).push(r); });
+  Object.entries(byGame).forEach(([gid,rows])=>{
+    rows.sort((a,b)=>b.scaled-a.scaled);
+    rows.slice(0,3).forEach((r,i)=>{ const rank=i+1; const cur=S.badges[r.profile_id];
+      if(!cur||rank<cur.rank) S.badges[r.profile_id]={rank,game:gid,score:r.scaled}; });
+  });
+}
 function ownsRare(id){ return S.myDrops.some(d=>d.character_id===id); }
 function defById(id){return S.defs.find(d=>d.id===id);}
 
 /* ============ ROUTER ============ */
-async function go(screen, opt){ S.screen=screen; if(!S.gauntlet||screen==='landing'||screen==='character'||screen==='setup'||screen==='hiscores')removeChat(); render(screen, opt||{}); }
+async function go(screen, opt){ S.screen=screen; const keep=(screen==='board'||screen==='lobby'||screen==='result'); if(!S.gauntlet||!keep)removeChat(); if(document&&document.body)document.body.classList.toggle('wideapp',screen==='board'); render(screen, opt||{}); }
 async function render(screen, opt){
   if(screen==='landing') return landing();
   if(screen==='character') return characterSelect(opt);
+  if(screen==='mode') return modeScreen();
   if(screen==='setup') return setupScreen();
   if(screen==='continue') return continueScreen();
+  if(screen==='lobby') return lobbyScreen();
   if(screen==='board') return boardScreen();
   if(screen==='result') return resultScreen();
   if(screen==='hiscores') return hiscoresScreen();
@@ -271,10 +482,43 @@ function landing(){
     <img src="rz_logo.png" class="logo" alt="RZ">
     <div class="title" style="font-size:clamp(32px,7vw,56px)">RIFT &amp; ZINGO'S<br>GAMING GAUNTLET</div>
     <div class="row" style="margin-top:16px">
-      <button class="btn lg pink" style="font-size:28px;padding:24px 44px" onclick="go('character',{next:'setup'})">Create New Gauntlet</button>
-      <button class="btn lg blue" style="font-size:28px;padding:24px 44px" onclick="go('character',{next:'continue'})">Continue Existing</button>
+      <button class="btn lg pink" style="font-size:28px;padding:24px 44px" onclick="go('character',{next:'mode'})">Create New Gauntlet</button>
+      <button class="btn lg blue" style="font-size:28px;padding:24px 44px" onclick="go('character',{next:'continue'})">Join or Resume</button>
     </div>
     <button class="btn ghost" style="font-size:22px;margin-top:10px" onclick="go('character',{next:'hiscores'})">HiScores</button>
+    ${S.me?`<button class="btn ghost sm" style="margin-top:8px" onclick="editProfile()">Edit Profile (${esc(S.me.name)})</button>`:''}
+  </div>`;
+}
+/* ---- MODE CHOOSER (online lobby vs pass-and-play on one device) ---- */
+function modeScreen(){
+  app.innerHTML=`
+  <div class="topbar"><button class="btn ghost sm" onclick="go('landing')">&larr; Back</button>
+    <div class="pixel" style="font-size:18px"><img src="rz_logo.png" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:8px">HOW ARE YOU PLAYING</div><div></div></div>
+  <div class="mode-grid">
+    <button class="mode-card" onclick="startOnlineCreate()">
+      <svg viewBox="0 0 120 80" class="mode-art" aria-hidden="true">
+        <rect x="10" y="16" width="34" height="54" rx="5" fill="none" stroke="var(--pink)" stroke-width="3"/>
+        <rect x="16" y="24" width="22" height="34" rx="2" fill="var(--pink)" opacity=".25"/>
+        <rect x="76" y="16" width="34" height="54" rx="5" fill="none" stroke="var(--blue)" stroke-width="3"/>
+        <rect x="82" y="24" width="22" height="34" rx="2" fill="var(--blue)" opacity=".25"/>
+        <path d="M48 34 q12 -10 24 0" fill="none" stroke="var(--purple)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M48 46 q12 10 24 0" fill="none" stroke="var(--purple)" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="60" cy="40" r="4" fill="var(--gold)"/>
+      </svg>
+      <div class="mode-name">Online</div>
+      <div class="mode-sub">Each player on their own device. Friends join your lobby and ready up.</div>
+    </button>
+    <button class="mode-card" onclick="startLocal()">
+      <svg viewBox="0 0 120 80" class="mode-art" aria-hidden="true">
+        <rect x="44" y="14" width="32" height="56" rx="6" fill="none" stroke="var(--purple)" stroke-width="3"/>
+        <rect x="50" y="22" width="20" height="36" rx="2" fill="var(--purple)" opacity=".25"/>
+        <circle cx="30" cy="30" r="7" fill="var(--pink)"/><path d="M20 50 q10 -12 20 0" fill="var(--pink)"/>
+        <circle cx="60" cy="24" r="7" fill="var(--gold)"/><path d="M50 44 q10 -12 20 0" fill="var(--gold)"/>
+        <circle cx="90" cy="30" r="7" fill="var(--blue)"/><path d="M80 50 q10 -12 20 0" fill="var(--blue)"/>
+      </svg>
+      <div class="mode-name">Pass-and-play</div>
+      <div class="mode-sub">Everyone shares this one screen. Hand the device around to enter scores.</div>
+    </button>
   </div>`;
 }
 
@@ -354,7 +598,7 @@ function changeIcon(){
   ov.innerHTML=`<div class="sd-card" style="border-color:var(--purple);max-width:560px;max-height:80vh;overflow-y:auto">
     <div class="pixel" style="font-size:16px;margin-bottom:12px">CHANGE ICON</div>
     <div class="charGrid">${pickable.map(id=>{
-      const name=CHARACTERS.find(c=>c.id===id)?.name||RARE_NAMES[id]||id;
+      const name=CHARACTERS.find(c=>c.id===id)?.name||RARE_NAMES[id]||SHOP_CHARS.find(c=>c.id===id)?.name||id;
       const sel=S.me&&S.me.sprite===id;
       return `<div class="char${sel?' sel':''}" onclick="setIcon('${id}')">
         <img class="charimg" src="./${id}.png" onerror="this.style.background='var(--panel2)'">
@@ -370,7 +614,24 @@ async function setIcon(id){
 }
 
 /* ---- SETUP ---- */
-const setup={players:2, drinking:false, switch:false, count:4, method:'random', title:'', slots:[], handicaps:{}, draftPicks:[]};
+const setup={players:2, drinking:false, switch:false, count:4, method:'random', title:'', slots:[], handicaps:{}, draftPicks:[], mode:'local'};
+/* pass-and-play: existing single-device flow */
+function startLocal(){ setup.mode='local'; go('setup'); }
+/* online: create a lobby row immediately, then host the lobby */
+async function startOnlineCreate(){
+  if(!S.me) return toast('Pick a profile first');
+  const title=`Gaming Gauntlet, ${dateLabel()}`;
+  const {data,error}=await sb.from('gauntlets').insert({
+    title, num_players:2, drinking:false, include_switch:false,
+    player_ids:[S.me.id], game_ids:[], status:'lobby', sd_multiplier:0.5,
+    handicaps:{}, round_meta:{}, sd:{state:'none'},
+    lobby:{mode:'online', phase:'setup', method:'random', count:4, ready:{}, pending:[]}
+  }).select().single();
+  if(error) return toast('Error: '+error.message);
+  S.gauntlet=data; S.scores=[]; S.chat=[];
+  subscribeGauntlet(data.id);
+  go('lobby');
+}
 function setupScreen(){
   setup.title=''; setup.slots=[S.me?S.me.id:null]; while(setup.slots.length<setup.players)setup.slots.push(null);
   app.innerHTML=`
@@ -431,8 +692,8 @@ function beginSelection(){
   const pl=pool(); if(setup.count>pl.length) return toast(`Only ${pl.length} games available with these settings`);
   if(setup.method==='random'&&setup.count>=pl.length) toast('All available games selected (turn on Switch or lower count for variety)');
   if(setup.method==='random'){
-    const shuffled=[...pl].sort(()=>Math.random()-.5).slice(0,setup.count).map(d=>d.id);
-    return createGauntlet(shuffled);
+    const picked=Array.from({length:setup.count},()=>pl[Math.floor(Math.random()*pl.length)].id);
+    return createGauntlet(picked);
   }
   draftScreen();
 }
@@ -455,7 +716,7 @@ function renderDraft(){
   </div>`;
 }
 function draftPick(id){
-  setup._picked.push(id); setup._remaining=setup._remaining.filter(x=>x!==id); setup._turn++;
+  setup._picked.push(id); setup._turn++;
   if(setup._picked.length>=setup.count) return createGauntlet(setup._picked);
   renderDraft();
 }
@@ -466,7 +727,7 @@ async function createGauntlet(gameIds){
   const {data,error}=await sb.from('gauntlets').insert({
     title, num_players:setup.players, drinking:setup.drinking, include_switch:setup.switch,
     player_ids:setup.slots, game_ids:gameIds, status:'active', sd_multiplier:0.5,
-    handicaps:setup.handicaps||{}, round_meta:{}, sd:{state:'none'}
+    handicaps:setup.handicaps||{}, round_meta:{}, sd:{state:'none'}, lobby:{mode:'local'}
   }).select().single();
   if(error) return toast('Error: '+error.message);
   openGauntlet(data.id);
@@ -474,14 +735,26 @@ async function createGauntlet(gameIds){
 
 /* ---- CONTINUE / OPEN ---- */
 async function continueScreen(){
-  const [{data},{data:finished}]=await Promise.all([
+  const [{data:lobbies},{data},{data:finished}]=await Promise.all([
+    sb.from('gauntlets').select('*').eq('status','lobby').order('created_at',{ascending:false}).limit(25),
     sb.from('gauntlets').select('*').eq('status','active').order('created_at',{ascending:false}).limit(25),
     sb.from('gauntlets').select('*').eq('status','finished').order('created_at',{ascending:false}).limit(25)
   ]);
+  // joinable = online lobbies still in setup (hide drafts in progress), and not ones you're already in
+  const joinable=(lobbies||[]).filter(g=>(g.lobby&&g.lobby.mode==='online')&&((g.lobby.phase||'setup')==='setup'));
+  const hostName=g=>{const h=profById((g.player_ids||[])[0]);return h?h.name:'someone';};
   app.innerHTML=`<div class="topbar"><button class="btn ghost sm" onclick="go('landing')">&larr; Back</button>
-    <div class="pixel" style="font-size:18px"><img src="rz_logo.png" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:8px">CONTINUE</div>
+    <div class="pixel" style="font-size:18px"><img src="rz_logo.png" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:8px">JOIN OR RESUME</div>
     <button class="btn ghost sm" onclick="editProfile()">Edit Profile</button></div>
-    <div class="card"><h3 style="margin-bottom:10px">Active</h3>${(data&&data.length)?data.map(g=>`
+    <div class="card"><h3 style="margin-bottom:10px">Live lobbies</h3>${joinable.length?joinable.map(g=>{
+      const cur=(g.player_ids||[]).length, cap=g.num_players||4, mine=S.me&&(g.player_ids||[]).includes(S.me.id);
+      const pend=S.me&&((g.lobby&&g.lobby.pending)||[]).includes(S.me.id);
+      return `<div class="list-item" onclick="${mine?`enterLobby('${g.id}')`:pend?'':`joinLobby('${g.id}')`}">
+        <div><strong>${esc(g.title)}</strong><div class="muted small">host ${esc(hostName(g))} · ${esc((g.lobby&&g.lobby.method)||'random')} pick</div></div>
+        <span class="pixel" style="margin-left:auto;margin-right:12px;font-size:16px;color:${cur>=cap?'var(--muted)':'var(--green)'}">${cur}/${cap}</span>
+        ${mine?'<span class="btn sm ghost" style="flex:none">Re-enter</span>':pend?'<span class="muted small" style="flex:none">waiting for host</span>':cur>=cap?'<span class="muted small" style="flex:none">full</span>':'<span class="btn sm gold" style="flex:none">Join</span>'}
+      </div>`;}).join(''):'<div class="muted">No open lobbies. Create one to get started.</div>'}</div>
+    <div class="card" style="margin-top:14px"><h3 style="margin-bottom:10px">Resume in progress</h3>${(data&&data.length)?data.map(g=>`
       <div class="list-item" onclick="openGauntlet('${g.id}')">
         <div><strong>${esc(g.title)}</strong><div class="muted small">${g.num_players} players · ${g.game_ids.length} games</div></div>
         <span class="muted small" style="margin-left:auto;margin-right:12px">${new Date(g.created_at).toLocaleDateString()}</span>
@@ -492,6 +765,179 @@ async function continueScreen(){
         <div><strong>${esc(g.title)}</strong><div class="muted small">${g.num_players} players · ${g.game_ids.length} games</div></div>
         <span class="muted small" style="margin-left:auto">${new Date(g.created_at).toLocaleDateString()}</span>
       </div>`).join(''):'<div class="muted">No finished gauntlets yet.</div>'}</div>`;
+}
+/* request to join a lobby (server-side atomic), then wait for host approval */
+async function joinLobby(id){
+  if(!S.me) return toast('Pick a profile first');
+  const {error}=await sb.rpc('request_join',{g_id:id,p_id:S.me.id});
+  if(error) return toast('Could not request: '+error.message);
+  // subscribe and watch for approval (added to player_ids) or denial (removed from pending)
+  const {data:g}=await sb.from('gauntlets').select('*').eq('id',id).single();
+  S.gauntlet=g; S.scores=[]; const {data:msgs}=await sb.from('chat').select('*').eq('gauntlet_id',id).order('created_at',{ascending:true}).limit(200); S.chat=msgs||[];
+  subscribeGauntlet(id);
+  if((g.player_ids||[]).includes(S.me.id)) return go('lobby');
+  S.screen='waiting'; renderWaiting();
+}
+function renderWaiting(){
+  const g=S.gauntlet;
+  app.innerHTML=`<div class="center">
+    <img src="rz_logo.png" class="logo" style="width:160px;height:160px" alt="RZ">
+    <div class="pixel" style="font-size:16px">REQUEST SENT</div>
+    <div class="muted">Waiting for the host to let you into <strong>${esc(g.title)}</strong>.</div>
+    <div class="spin" style="margin-top:8px"></div>
+    <button class="btn ghost sm" style="margin-top:16px" onclick="leaveLobby()">Cancel</button>
+  </div>`;
+}
+async function enterLobby(id){ await openGauntlet(id); }
+async function leaveLobby(){
+  if(S.chan){ sb.removeChannel(S.chan); S.chan=null; }
+  if(S.gauntlet&&S.me) await sb.rpc('deny_join',{g_id:S.gauntlet.id,p_id:S.me.id});
+  S.gauntlet=null; go('landing');
+}
+
+/* ---- LOBBY (online) ---- */
+function isLobbyHost(){ return S.me && S.gauntlet && (S.gauntlet.player_ids||[])[0]===S.me.id; }
+function lobbyScreen(){
+  const g=S.gauntlet; if(!g) return; const lob=g.lobby||{};
+  const host=isLobbyHost();
+  const players=(g.player_ids||[]).map(profById).filter(Boolean);
+  const ready=lob.ready||{};
+  const cap=g.num_players||4;
+  const method=lob.method||'random', count=lob.count||4, sw=!!g.include_switch;
+  const pending=(lob.pending||[]).map(profById).filter(Boolean);
+  const allReady=players.length>=1 && players.every(p=>ready[p.id]);
+  const meReady=S.me&&ready[S.me.id];
+  const seg=(opts,cur,fn,dis)=>`<div class="seg">${opts.map(o=>`<button class="${o.v===cur?'on':''}" ${dis?'disabled style="opacity:.6;cursor:default"':`onclick="${fn}(${typeof o.v==='string'?`'${o.v}'`:o.v})"`}>${o.l}</button>`).join('')}</div>`;
+  const settings = host ? `
+    <div class="field"><label>Player cap</label>${seg([1,2,3,4].map(n=>({v:n,l:n})),cap,'setLobbyCap')}</div>
+    <div class="field"><label>Number of games</label>${seg([2,3,4,5,6].map(n=>({v:n,l:n})),count,'setLobbyCount')}</div>
+    <div class="field"><label>Include Switch games</label>${seg([{v:false,l:'No'},{v:true,l:'Yes'}],sw,'setLobbySwitch')}</div>
+    <div class="field"><label>Game selection</label>${seg([{v:'random',l:'Random'},{v:'draft',l:'Draft'}],method,'setLobbyMethod')}</div>
+    <div class="field"><label>Title</label><input type="text" id="lobbyTitle" value="${esc(g.title)}" maxlength="40"
+      onfocus="S._typingLobby=true" onblur="S._typingLobby=false;lobbyScreen()" oninput="setLobbyTitle(this.value)"></div>
+    <div id="lobbyHC"></div>`
+  : `
+    <div class="muted small" style="line-height:1.9">
+      Players: up to ${cap}<br>Games: ${count}<br>Switch games: ${sw?'on':'off'}<br>Selection: ${method}<br>Title: ${esc(g.title)}
+    </div>
+    <div class="muted small" style="margin-top:10px">The host controls setup. You'll see changes here live.</div>`;
+  app.innerHTML=`
+  <div class="topbar"><button class="btn ghost sm" onclick="lobbyLeave()">${host?'Cancel lobby':'Leave'}</button>
+    <div class="pixel" style="font-size:18px"><img src="rz_logo.png" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:8px">LOBBY</div>
+    <div class="me">${S.me?avatar(S.me,'sm'):''}<span class="small" style="color:${S.me?S.me.color:''}">${S.me?esc(S.me.name):''}</span></div></div>
+  <div class="lobby-grid">
+    <div class="card"><h3 style="margin-bottom:12px">${esc(g.title)}</h3>${settings}</div>
+    <div class="card">
+      <h3 style="margin-bottom:12px">Players <span class="muted small">${players.length}/${cap}</span></h3>
+      <div class="lobby-players">${players.map((p,i)=>`<div class="lobby-pl">
+        ${avatar(p,'sm')}<span style="color:${p.color};font-weight:700">${esc(p.name)}</span>
+        ${i===0?'<span class="tag-host">HOST</span>':''}
+        <span class="ready-dot ${ready[p.id]?'on':''}" title="${ready[p.id]?'ready':'not ready'}">${ready[p.id]?'✓':''}</span>
+      </div>`).join('')}</div>
+      ${host&&pending.length?`<div style="margin-top:14px"><div class="muted small" style="margin-bottom:6px">Wants to join</div>
+        ${pending.map(p=>`<div class="lobby-pl" style="background:var(--panel)">
+          ${avatar(p,'sm')}<span style="color:${p.color};font-weight:700">${esc(p.name)}</span>
+          <div class="row" style="margin-left:auto;gap:6px"><button class="btn sm gold" onclick="approveJoin('${p.id}')">Approve</button>
+          <button class="btn sm ghost" onclick="denyJoin('${p.id}')">Deny</button></div></div>`).join('')}</div>`:''}
+      <div class="row" style="margin-top:16px;justify-content:space-between">
+        <button class="btn ${meReady?'ghost':'blue'}" onclick="toggleReady()">${meReady?'Not ready':'Ready up'}</button>
+        ${host?`<button class="btn gold lg" ${allReady?'':'disabled'} onclick="startGauntletFromLobby()">Start gauntlet</button>`
+          :`<span class="muted small">${allReady?'Waiting for host to start':'Everyone needs to ready up'}</span>`}
+      </div>
+    </div>
+  </div>`;
+  if(host) renderLobbyHC();
+  renderChat();
+}
+function renderLobbyHC(){
+  const hc=$('#lobbyHC'); if(!hc) return; const g=S.gauntlet;
+  const named=(g.player_ids||[]).map(profById).filter(Boolean);
+  if(named.length<2){ hc.innerHTML=''; return; }
+  const handi=g.handicaps||{};
+  hc.innerHTML=`<details style="margin-top:6px"><summary style="cursor:pointer;color:var(--muted);font-size:13px;font-weight:700">CS2 handicap (optional)</summary>
+    <div style="margin-top:8px">${named.map(p=>`<div class="row" style="justify-content:flex-start;margin-bottom:6px">
+      <span class="small" style="width:110px;color:${p.color};font-weight:700">${esc(p.name)}</span>
+      <input type="number" style="width:100px" value="${handi[p.id]||0}" onfocus="S._typingLobby=true" onblur="S._typingLobby=false;lobbyScreen()" oninput="setLobbyHandicap('${p.id}',+this.value)" placeholder="e.g. 600">
+    </div>`).join('')}<div class="muted small">Added to CS2 score after scaling.</div></div></details>`;
+}
+async function setLobbyCap(n){ if(!isLobbyHost())return; await sb.from('gauntlets').update({num_players:n}).eq('id',S.gauntlet.id); }
+async function setLobbyCount(n){ if(!isLobbyHost())return; await sb.rpc('lobby_merge',{g_id:S.gauntlet.id,patch:{count:n,ready:{}}}); }
+async function setLobbySwitch(v){ if(!isLobbyHost())return; await sb.from('gauntlets').update({include_switch:v}).eq('id',S.gauntlet.id); await sb.rpc('lobby_merge',{g_id:S.gauntlet.id,patch:{ready:{}}}); }
+async function setLobbyMethod(m){ if(!isLobbyHost())return; await sb.rpc('lobby_merge',{g_id:S.gauntlet.id,patch:{method:m,ready:{}}}); }
+let lobbyTitleTimer;
+function setLobbyTitle(v){ if(!isLobbyHost())return; clearTimeout(lobbyTitleTimer); lobbyTitleTimer=setTimeout(()=>sb.from('gauntlets').update({title:v.trim()||('Gaming Gauntlet, '+dateLabel())}).eq('id',S.gauntlet.id),450); }
+let lobbyHCTimer={};
+function setLobbyHandicap(pid,val){ if(!isLobbyHost())return; const h={...(S.gauntlet.handicaps||{}),[pid]:val}; S.gauntlet.handicaps=h; clearTimeout(lobbyHCTimer[pid]); lobbyHCTimer[pid]=setTimeout(()=>sb.from('gauntlets').update({handicaps:h}).eq('id',S.gauntlet.id),450); }
+async function toggleReady(){ if(!S.me)return; const cur=(S.gauntlet.lobby&&S.gauntlet.lobby.ready&&S.gauntlet.lobby.ready[S.me.id])||false; await sb.rpc('lobby_set_ready',{g_id:S.gauntlet.id,p_id:S.me.id,val:!cur}); }
+async function approveJoin(pid){ if(!isLobbyHost())return; await sb.rpc('approve_join',{g_id:S.gauntlet.id,p_id:pid}); }
+async function denyJoin(pid){ if(!isLobbyHost())return; await sb.rpc('deny_join',{g_id:S.gauntlet.id,p_id:pid}); }
+async function lobbyLeave(){
+  const g=S.gauntlet; if(!g) return go('landing');
+  if(isLobbyHost()){
+    if(!confirm('Cancel this lobby for everyone?')) return;
+    await sb.from('chat').delete().eq('gauntlet_id',g.id);
+    await sb.from('gauntlets').delete().eq('id',g.id);
+  } else if(S.me){
+    await sb.rpc('leave_lobby',{g_id:g.id,p_id:S.me.id});
+  }
+  if(S.chan){ sb.removeChannel(S.chan); S.chan=null; }
+  S.gauntlet=null; go('landing');
+}
+function draftSequence(players, count){
+  const n=players.length, seq=[];
+  if(n<=2){ for(let i=0;i<count;i++) seq.push(players[i%n]); return seq; }
+  let idx=0, dir=1;
+  while(seq.length<count){ seq.push(players[idx]); idx+=dir; if(idx===n){idx=n-1;dir=-1;} else if(idx<0){idx=0;dir=1;} }
+  return seq;
+}
+async function startGauntletFromLobby(){
+  if(!isLobbyHost())return;
+  const g=S.gauntlet, lob=g.lobby||{};
+  const players=(g.player_ids||[]);
+  const ready=lob.ready||{};
+  if(!players.length||!players.every(p=>ready[p])) return toast('Everyone needs to ready up');
+  const count=lob.count||4, method=lob.method||'random';
+  const pl=S.defs.filter(d=>g.include_switch||!d.is_switch);
+  if(!pl.length) return toast('No games available with these settings');
+  if(method==='random'){
+    const picked=Array.from({length:count},()=>pl[Math.floor(Math.random()*pl.length)].id);
+    await sb.from('gauntlets').update({game_ids:picked,status:'active',round_meta:{}}).eq('id',g.id);
+  } else {
+    const seq=draftSequence(players, count);
+    await sb.rpc('lobby_merge',{g_id:g.id,patch:{phase:'draft',draft:{seq,turn:0,picks:[]}}});
+  }
+}
+/* ---- ONLINE DRAFT (cross-screen, snake order, duplicates allowed) ---- */
+function lobbyDraftRender(){
+  removeChat();
+  const g=S.gauntlet, dr=(g.lobby&&g.lobby.draft)||{seq:[],turn:0,picks:[]};
+  const seq=dr.seq||[], turn=dr.turn||0, picks=dr.picks||[];
+  const count=(g.lobby&&g.lobby.count)||seq.length;
+  const curPid=seq[turn], cur=profById(curPid);
+  const myTurn=S.me&&curPid===S.me.id;
+  const pool=S.defs.filter(d=>g.include_switch||!d.is_switch);
+  app.innerHTML=`<div class="topbar"><div></div>
+    <div class="pixel" style="font-size:18px"><img src="rz_logo.png" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:8px">DRAFT</div><div></div></div>
+  <div class="card">
+    <div class="row" style="justify-content:flex-start;margin-bottom:10px">${cur?avatar(cur,'sm'):''}
+      <strong style="color:${cur?cur.color:''}">${esc(cur?cur.name:'?')}</strong>
+      <span class="muted">picks game ${picks.length+1} of ${count}</span></div>
+    ${myTurn?`<div class="muted small" style="margin-bottom:8px">Your pick. Duplicates are allowed.</div>
+      <div class="draft-pick">${pool.map(d=>`<button class="btn" onclick="lobbyDraftPick('${d.id}')">${esc(d.name)}</button>`).join('')}</div>`
+      :`<div class="muted" style="padding:24px 10px;text-align:center;font-size:20px">Waiting for <strong style="color:${cur?cur.color:''}">${esc(cur?cur.name:'someone')}</strong> to pick...</div>`}
+    <div class="muted small" style="margin-top:14px">Picked: ${picks.map(id=>esc((defById(id)||{}).name||id)).join(', ')||'none yet'}</div>
+    <div class="muted small" style="margin-top:6px">Order: ${seq.map((pid,i)=>{const pp=profById(pid);const done=i<picks.length;const now=i===turn;return `<span style="color:${pp?pp.color:''};${now?'font-weight:800;text-decoration:underline':done?'opacity:.45':''}">${esc(pp?pp.name:'?')}</span>`;}).join(' &rarr; ')}</div>
+  </div>`;
+}
+async function lobbyDraftPick(gid){
+  const g=S.gauntlet, dr=(g.lobby&&g.lobby.draft)||{}; const seq=dr.seq||[],turn=dr.turn||0,picks=(dr.picks||[]).slice();
+  if(seq[turn]!==(S.me&&S.me.id)) return;
+  picks.push(gid); const count=(g.lobby&&g.lobby.count)||seq.length;
+  if(picks.length>=count){
+    await sb.from('gauntlets').update({game_ids:picks,status:'active',round_meta:{}}).eq('id',g.id);
+  } else {
+    await sb.rpc('lobby_merge',{g_id:g.id,patch:{draft:{seq,turn:turn+1,picks}}});
+  }
 }
 async function reviewGauntlet(id){
   const {data:g}=await sb.from('gauntlets').select('*').eq('id',id).single();
@@ -540,6 +986,10 @@ async function openGauntlet(id){
   S.scores=sc||[];
   const {data:msgs}=await sb.from('chat').select('*').eq('gauntlet_id',id).order('created_at',{ascending:true}).limit(200);
   S.chat=msgs||[];
+  subscribeGauntlet(id);
+  routeGauntlet();
+}
+function subscribeGauntlet(id){
   if(S.chan) sb.removeChannel(S.chan);
   S.chan=sb.channel('g-'+id)
     .on('postgres_changes',{event:'*',schema:'public',table:'scores',filter:'gauntlet_id=eq.'+id},payload=>{
@@ -551,22 +1001,51 @@ async function openGauntlet(id){
       if(payload.new){ S.chat.push(payload.new); renderChat(); }
     })
     .on('postgres_changes',{event:'UPDATE',schema:'public',table:'gauntlets',filter:'id=eq.'+id},payload=>{
-      S.gauntlet=payload.new;
-      const sd=S.gauntlet.sd||{};
-      if(sd.state==='proposed'||sd.state==='active'){
-        if(sd.state==='proposed') renderSD();
-        if(sd.state==='active') sdRoundScreen();
-        return;
-      }
-      if(S.gauntlet.status==='finished'&&S.screen!=='result') return go('result');
-      if(S.screen==='board') boardScreen();
+      const prev=S.gauntlet; S.gauntlet=payload.new; onGauntletUpdate(prev);
     })
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'drops',filter:'gauntlet_id=eq.'+id},payload=>{
       if(payload.new){ dropToast(payload.new); if(S.me&&payload.new.profile_id===S.me.id){ S.myDrops.push(payload.new); } }
     })
     .subscribe();
+}
+/* decide which screen this client should be on, given current gauntlet state */
+function routeGauntlet(){
+  const g=S.gauntlet; if(!g) return;
+  const sd=g.sd||{};
+  if(sd.state==='proposed'){ S.screen='result'; resultScreen(); return; }
+  if(sd.state==='active'){ S.screen='board'; sdRoundScreen(); return; }
+  if(g.status==='finished'){ S.screen='result'; resultScreen(); return; }
+  if(g.status==='lobby'){
+    const ph=(g.lobby&&g.lobby.phase)||'setup';
+    if(ph==='draft'){ S.screen='draft'; lobbyDraftRender(); return; }
+    S.screen='lobby'; lobbyScreen(); return;
+  }
   go('board');
 }
+/* react to a realtime gauntlet row change */
+function onGauntletUpdate(prev){
+  const g=S.gauntlet, sd=g.sd||{};
+  if(sd.state==='proposed'){ renderSD(); return; }
+  if(sd.state==='active'){ sdRoundScreen(); return; }
+  if(g.status==='finished'){ if(S.screen!=='result') go('result'); return; }
+  if(g.status==='lobby'){
+    const ph=(g.lobby&&g.lobby.phase)||'setup';
+    if(ph==='draft'){ S.screen='draft'; lobbyDraftRender(); return; }
+    if(S._typingLobby && S.screen==='lobby'){ return; }
+    if(S.screen!=='lobby'){ S.screen='lobby'; }
+    lobbyScreen();
+    return;
+  }
+  // status active
+  if(S.screen==='lobby'||S.screen==='draft'){ go('board'); return; }
+  if(S.screen==='board'){
+    const newly=newlyDoneRounds(prev);
+    boardScreen();
+    newly.forEach(ri=>celebrateRound(ri));
+  }
+}
+function roundDoneMap(g){ const m=(g&&g.round_meta)||{}; const out={}; Object.keys(m).forEach(k=>{ if(m[k]&&m[k].done) out[k]=true; }); return out; }
+function newlyDoneRounds(prev){ const before=roundDoneMap(prev),after=roundDoneMap(S.gauntlet); return Object.keys(after).filter(ri=>!before[ri]).map(Number); }
 
 /* ---- BOARD ---- */
 function rawFor(roundIdx, pid){ const s=S.scores.find(x=>x.round_index===roundIdx&&x.profile_id===pid); return s?s.raw:{}; }
@@ -609,38 +1088,119 @@ function roundWinners(ri,gid){ const g=S.gauntlet; let max=-1,win=[],any=false;
 
 function boardScreen(){
   const g=S.gauntlet; const t=totals(); const w=roundsWon();
-  const ps=g.player_ids.map(profById);
-  const maxTot=Math.max(...Object.values(t));
+  const ps=g.player_ids.map(profById).filter(Boolean);
+  const maxTot=Math.max(0,...Object.values(t));
+  const isHost=S.me&&g.player_ids[0]===S.me.id;
+  const coins=S.me?S.me.coins||0:0;
   app.innerHTML=`
-  <div class="topbar">
-    <button class="btn ghost sm" onclick="editGauntlet()">Edit Gauntlet</button>
-    <div class="pixel" style="font-size:24px;text-align:center">${esc(g.title)}</div>
-    <div class="me">${S.me?avatar(S.me,'sm'):''}<span class="small" style="color:${S.me?S.me.color:''}">${S.me?esc(S.me.name):''}</span>
-      <span class="small" style="color:var(--gold);font-weight:700">${S.me?S.me.coins||0:0} coins</span>
-      <button class="btn ghost sm" onclick="changeIcon()">Icon</button>
-      <button class="btn ghost sm" onclick="go('hiscores')">HiScores</button></div>
+  ${ribbonHeader(isHost,coins)}
+  <div class="sbribbon" id="sbcol">${ps.map(p=>scoreBubble(p,t,w,maxTot)).join('')}</div>
+  <div class="boardmain">
+    <div class="rounds-grid" id="rounds">${g.game_ids.map((gid,ri)=>gameBlock(gid,ri,ps)).join('')}</div>
+    <div class="chat-col"><div class="chatdock" id="chatdock"></div></div>
   </div>
-  <div class="score-strip">
-    ${ps.map(p=>`<div class="pscore">
-      ${avatar(p)}
-      <div><div class="nm" style="color:${p.color}">${esc(p.name)}</div>
-        <div class="gems">${Array.from({length:w[p.id]||0}).map(()=>`<span class="gem" style="background:${p.color}"></span>`).join('')||'<span class="muted small">no rounds won</span>'}</div></div>
-      <div class="tot" style="color:${p.color}">${t[p.id]}${t[p.id]===maxTot&&maxTot>0?' <span class="leadtag">LEAD</span>':''}</div>
-    </div>`).join('')}
-  </div>
-  <div id="rounds">${g.game_ids.map((gid,ri)=>gameBlock(gid,ri,ps)).join('')}</div>
-  <div class="row" style="margin-top:20px;margin-bottom:240px">
-    <button class="btn gold lg" id="finBtn" onclick="finishGauntlet()">Finish Gauntlet</button>
-  </div>`;
+  <div class="row" style="margin:18px 0 50px"><button class="btn gold lg" id="finBtn" onclick="finishGauntlet()">Finish gauntlet</button></div>`;
   renderChat();
 }
+const ICON_SHOP=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>`;
+const ICON_GEAR=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>`;
+const ICON_COIN=`<svg width="16" height="16" viewBox="0 0 24 24" fill="var(--gold)" stroke="#a8801e" stroke-width="1.5"><circle cx="12" cy="12" r="9"/></svg>`;
+const ICON_PENCIL=`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`;
+function ribbonHeader(isHost,coins){
+  const g=S.gauntlet;
+  return `<div class="ribbon">
+    <div class="ribbon-l">
+      ${isHost?`<button class="iconbtn txt" onclick="editGauntlet()">Edit gauntlet</button>`:''}
+      <button class="iconbtn txt" onclick="go('hiscores')">HiScores</button>
+    </div>
+    <div class="ribbon-c"><img src="rz_logo.png" class="rzlogo" alt="RZ"><span class="ttl">${esc(g.title)}</span></div>
+    <div class="ribbon-r">
+      <button class="iconbtn" title="Shop" aria-label="Shop" onclick="openShop()">${ICON_SHOP}</button>
+      <span class="coin" onclick="openShop()">${ICON_COIN} ${coins}</span>
+      ${S.me?`<span onclick="toggleGearMenu()" style="cursor:pointer">${avatar(S.me,'sm')}</span>`:''}
+      <span class="pname" style="color:${S.me?S.me.color:''}">${S.me?esc(S.me.name):''}</span>
+      <div class="gearwrap"><button class="iconbtn" title="Settings" aria-label="Settings" onclick="toggleGearMenu()">${ICON_GEAR}</button><div id="gearMenu"></div></div>
+    </div>
+  </div>`;
+}
+function gemsHtml(p,n){ return n?Array.from({length:n}).map(()=>`<span class="gem" style="background:${p.color}"></span>`).join(''):'<span class="muted small">no rounds won</span>'; }
+function medalSVG(rank,gameId){
+  const col=rank===1?'#f5c451':rank===2?'#cfd4dd':'#cd8b54';
+  const dn=(defById(gameId)||{}).name||gameId;
+  const ord=rank===1?'1st':rank===2?'2nd':'3rd';
+  return `<span class="medal" title="${ord} highscore in ${esc(dn)}"><svg width="16" height="16" viewBox="0 0 24 24">
+    <path d="M8 2 L11 10 L9 10 Z M16 2 L13 10 L15 10 Z" fill="${col}" opacity=".85"/>
+    <circle cx="12" cy="15" r="6.5" fill="${col}" stroke="#0003" stroke-width="1"/>
+    <text x="12" y="18" text-anchor="middle" font-size="8" font-weight="bold" fill="#3a2700" font-family="sans-serif">${rank}</text></svg></span>`;
+}
+function badgeHtml(pid){
+  const b=S.badges&&S.badges[pid]; if(!b) return '';
+  const pr=profById(pid); if(pr&&pr.show_badge===false) return '';
+  return ' '+medalSVG(b.rank,b.game);
+}
+function scoreBubble(p,t,w,maxTot){
+  const lead=t[p.id]===maxTot&&maxTot>0;
+  const np=nameplateCSS(p.nameplate,p.color);
+  return `<div class="sbcard ${lead?'lead':''}" id="sb-${p.id}">
+    <div class="np" style="background:${np}"></div>
+    <div class="npc">
+      <div class="sb-top">${avatar(p,'sm')}
+        <div class="sb-mid">
+          <div class="sb-name" style="color:${p.color}">${esc(p.name)}${badgeHtml(p.id)}</div>
+          <div class="gems">${gemsHtml(p,w[p.id]||0)}</div>
+        </div>
+        <span class="sb-tot" style="color:${p.color}">${t[p.id]||0}${lead?' <span class="leadtag">LEAD</span>':''}</span>
+      </div>
+    </div>
+    <div class="winfx" id="fx-${p.id}"></div>
+  </div>`;
+}
+function toggleGearMenu(){
+  const m=document.getElementById('gearMenu'); if(!m) return;
+  if(m.firstChild){ m.innerHTML=''; return; }
+  m.innerHTML=`<div class="gearmenu">
+    <button onclick="closeGear();editProfile()">Edit profile</button>
+    <button onclick="closeGear();changeIcon()">Change icon</button>
+    <button onclick="closeGear();switchProfile()">Switch profile</button>
+    <hr>
+    <button onclick="closeGear();toggleBadge()">${(S.me&&S.me.show_badge===false)?'Show my medal':'Hide my medal'}</button>
+    <button onclick="closeGear();resetTheme()">Reset theme</button>
+    <button onclick="closeGear();resetCursor()">Reset cursor</button>
+  </div>`;
+}
+function closeGear(){ const m=document.getElementById('gearMenu'); if(m)m.innerHTML=''; }
+function switchProfile(){ S.me=null; localStorage.removeItem('rzgg_me'); go('character',{next:'continue'}); }
+async function resetTheme(){ if(!S.me)return; await sb.from('profiles').update({theme:null}).eq('id',S.me.id); S.me.theme=null; const i=S.profiles.findIndex(p=>p.id===S.me.id); if(i>=0)S.profiles[i].theme=null; applyThemeCSS(''); toast('Theme reset'); }
+async function resetCursor(){ if(!S.me)return; await sb.from('profiles').update({cursor:null}).eq('id',S.me.id); S.me.cursor=null; const i=S.profiles.findIndex(p=>p.id===S.me.id); if(i>=0)S.profiles[i].cursor=null; applyCursorCSS(''); toast('Cursor reset'); }
+async function toggleBadge(){
+  if(!S.me)return; const nv = S.me.show_badge===false ? true : false;
+  await sb.from('profiles').update({show_badge:nv}).eq('id',S.me.id); S.me.show_badge=nv;
+  const i=S.profiles.findIndex(p=>p.id===S.me.id); if(i>=0)S.profiles[i].show_badge=nv;
+  if(S.screen==='board') boardScreen(); toast(nv?'Medal shown':'Medal hidden');
+}
 function renderChat(){
-  let strip=document.getElementById('chatstrip');
-  if(!strip){strip=document.createElement('div');strip.id='chatstrip';strip.className='chatstrip';document.body.appendChild(strip);}
-  const g=S.gauntlet; const players=g?g.player_ids.map(profById).filter(Boolean):[];
+  const dock=document.getElementById('chatdock');
+  const wide=window.matchMedia&&window.matchMedia('(min-width:1001px)').matches;
+  if(dock&&wide){
+    const fp=document.getElementById('chatpanel'); if(fp)fp.remove();
+    const ft=document.getElementById('chattoggle'); if(ft)ft.remove();
+    dock.innerHTML=chatBody(false);
+    const m=document.getElementById('chatmsgs'); if(m)m.scrollTop=m.scrollHeight;
+    return;
+  }
+  let panel=document.getElementById('chatpanel'); let toggle=document.getElementById('chattoggle');
+  if(!panel){
+    panel=document.createElement('div');panel.id='chatpanel';panel.className='chatpanel';document.body.appendChild(panel);
+    toggle=document.createElement('button');toggle.id='chattoggle';toggle.className='chattoggle';toggle.textContent='Chat';
+    toggle.onclick=()=>{panel.classList.toggle('open');toggle.style.right=panel.classList.contains('open')?'320px':'0';};
+    document.body.appendChild(toggle);
+  }
+  panel.innerHTML=chatBody(true);
+  const m=document.getElementById('chatmsgs'); if(m)m.scrollTop=m.scrollHeight;
+}
+function chatBody(withClose){
   const meId=S.me?S.me.id:null;
-  strip.innerHTML=`
-  <div class="chatsidebar">${players.map(p=>`<img class="chatav" data-name="${esc(p.name)}" src="./${p.sprite||'rz_logo'}.png" style="border-color:${p.color}" onerror="this.style.background='${p.color}'">`).join('')}</div>
+  return `<div class="chatheader"><span>Chat</span>${withClose?`<button class="btn ghost sm" onclick="document.getElementById('chatpanel').classList.remove('open');document.getElementById('chattoggle').style.right='0'">Close</button>`:''}</div>
   <div class="chatmain">
     <div class="chatmsgs" id="chatmsgs">${S.chat.map(m=>{
       const p=profById(m.profile_id); const isMe=m.profile_id===meId;
@@ -649,26 +1209,33 @@ function renderChat(){
         <img class="msgav" src="./${sprite}.png" style="border:2px solid ${col};border-radius:50%" onerror="this.style.background='${col}'">
         <div class="chatbubble" style="background:${col}22;border:1px solid ${col}44;color:var(--ink)">${esc(m.msg)}</div>
       </div>`;}).join('')}</div>
-    <div class="chatbar"><input id="chatinput" type="text" placeholder="Type a message..." maxlength="200" onkeydown="if(event.key==='Enter')sendChat()"><button class="btn sm pink" onclick="sendChat()">Send</button></div>
+    <div class="chatbar"><input id="chatinput" type="text" placeholder="Message..." maxlength="200" onkeydown="if(event.key==='Enter')sendChat()"><button class="btn sm pink" onclick="sendChat()">Send</button></div>
   </div>`;
-  const msgs=document.getElementById('chatmsgs'); if(msgs) msgs.scrollTop=msgs.scrollHeight;
+}
+function removeChat(){
+  const p=document.getElementById('chatpanel');if(p)p.remove();
+  const t=document.getElementById('chattoggle');if(t)t.remove();
 }
 async function sendChat(){
-  const input=document.getElementById('chatinput'); if(!input)return;
-  const msg=input.value.trim(); if(!msg||!S.me||!S.gauntlet) return;
-  input.value='';
-  await sb.from('chat').insert({gauntlet_id:S.gauntlet.id,profile_id:S.me.id,msg});
+  const inp=document.getElementById('chatinput'); if(!inp) return;
+  const msg=inp.value.trim(); if(!msg||!S.me||!S.gauntlet) return;
+  inp.value='';
+  const {error}=await sb.from('chat').insert({gauntlet_id:S.gauntlet.id,profile_id:S.me.id,msg});
+  if(error){ toast('Message failed'); inp.value=msg; }
 }
-function removeChat(){const s=document.getElementById('chatstrip');if(s)s.remove();}
 function gameBlock(gid,ri,ps){
   const d=defById(gid); const inputs=d.inputs;
   const winners=roundWinners(ri,gid);
   const isFn=gid==='fn';
   const meta=metaFor(ri);
+  const locks=meta.locks||{}; const done=!!meta.done;
   const mc=MATCHES[gid]||1;
   const isCS2=gid==='cs2';
-  const headerInputs=isFn?inputs:inputs; // always show all columns in header
-  return `<div class="gblock">
+  const headerInputs=inputs;
+  const wide=!!(MATCHES[gid]||inputs.length>3);
+  const froz=pid=>done||!!locks[pid];
+  const dis=pid=>froz(pid)?'disabled':'';
+  return `<div class="gblock${done?' done':''}${wide?' wide':''}">
     <div class="ghead">
       <span class="gn">Round ${ri+1}: ${esc(d.name)}</span>
       <div class="info">?<div class="tip">${esc(d.scale_note)}${mc>1?'\\n'+mc+' matches, scores are summed.':''}</div></div>
@@ -676,15 +1243,15 @@ function gameBlock(gid,ri,ps){
     <table class="gtable"><thead><tr>
       <th class="pl">Player</th>${mc>1?'<th></th>':''}${headerInputs.map(f=>`<th>${esc(f.label)}</th>`).join('')}${isCS2?'<th>Bonus</th>':''}<th>Score</th><th>Win</th></tr></thead>
     <tbody>${ps.map(p=>{const raw=rawFor(ri,p.id); const sc=scaledFor(ri,gid,p.id); const won=winners.includes(p.id);
-      const hc=isCS2?handicapFor(p.id):0;
+      const hc=isCS2?handicapFor(p.id):0; const dz=dis(p.id);
       if(mc===1){
         return `<tr><td class="pl" style="color:${p.color}"><div style="display:flex;align-items:center;gap:6px">${avatar(p,"sm")} ${esc(p.name)}</div></td>
         ${headerInputs.map(f=>f.type==='bool'
-          ? `<td><input type="checkbox" ${raw[f.key]?'checked':''} onchange="setRaw(${ri},'${p.id}','${f.key}',this.checked)"></td>`
-          : `<td><input type="number" inputmode="decimal" value="${raw[f.key]!=null?raw[f.key]:''}" oninput="setRaw(${ri},'${p.id}','${f.key}',this.value)"></td>`).join('')}
+          ? `<td><input type="checkbox" ${raw[f.key]?'checked':''} ${dz} onchange="setRaw(${ri},'${p.id}','${f.key}',this.checked)"></td>`
+          : `<td><input type="number" inputmode="decimal" ${dz} value="${raw[f.key]!=null?raw[f.key]:''}" oninput="setRaw(${ri},'${p.id}','${f.key}',this.value)"></td>`).join('')}
         ${isCS2?`<td class="muted" style="font-weight:700">+${hc}</td>`:''}
         <td class="sc" style="color:${p.color}">${sc}</td>
-        <td>${won?`<span class="winchip" style="background:${p.color};color:#1a0f2e">WIN</span>`:''}</td></tr>`;
+        <td class="wincell">${won?`<span class="winchip" style="background:${p.color};color:#1a0f2e">WIN</span>`:''}</td></tr>`;
       }
       let rows='';
       for(let m=1;m<=mc;m++){
@@ -692,19 +1259,60 @@ function gameBlock(gid,ri,ps){
         const matchMode=isFn?(meta['mode_'+m]||'OG'):'';
         const isReload=matchMode==='Reload';
         rows+=`<tr>${isFirst?`<td rowspan="${mc}" class="pl" style="color:${p.color}"><div style="display:flex;align-items:center;gap:6px">${avatar(p,"sm")} ${esc(p.name)}</div></td>`:''}
-          <td style="white-space:nowrap">${isFn?`<div class="seg" style="font-size:11px"><button class="${!isReload?'on':''}" onclick="setMatchMode(${ri},${m},'OG')" style="padding:3px 5px">OG</button><button class="${isReload?'on':''}" onclick="setMatchMode(${ri},${m},'Reload')" style="padding:3px 5px">RL</button></div>`:`<span class="muted small">Gm${m}</span>`}</td>
+          <td style="white-space:nowrap">${isFn?`<div class="seg" style="font-size:11px"><button class="${!isReload?'on':''}" ${dz} onclick="setMatchMode(${ri},${m},'OG')" style="padding:3px 5px">OG</button><button class="${isReload?'on':''}" ${dz} onclick="setMatchMode(${ri},${m},'Reload')" style="padding:3px 5px">RL</button></div>`:`<span class="muted small">Gm${m}</span>`}</td>
           ${headerInputs.map(f=>{const key=f.key+'_'+m;
             const hidden=isFn&&isReload&&(f.key==='rev'||f.key==='reb');
             return hidden?'<td></td>':f.type==='bool'
-              ? `<td><input type="checkbox" ${raw[key]?'checked':''} onchange="setRaw(${ri},'${p.id}','${key}',this.checked)"></td>`
-              : `<td><input type="number" inputmode="decimal" value="${raw[key]!=null?raw[key]:''}" oninput="setRaw(${ri},'${p.id}','${key}',this.value)"></td>`;}).join('')}
+              ? `<td><input type="checkbox" ${raw[key]?'checked':''} ${dz} onchange="setRaw(${ri},'${p.id}','${key}',this.checked)"></td>`
+              : `<td><input type="number" inputmode="decimal" ${dz} value="${raw[key]!=null?raw[key]:''}" oninput="setRaw(${ri},'${p.id}','${key}',this.value)"></td>`;}).join('')}
           ${isFirst?`<td rowspan="${mc}" class="sc" style="color:${p.color};vertical-align:middle">${sc}</td>
-          <td rowspan="${mc}" style="vertical-align:middle">${won?`<span class="winchip" style="background:${p.color};color:#1a0f2e">WIN</span>`:''}</td>`:''}</tr>`;
+          <td rowspan="${mc}" class="wincell" style="vertical-align:middle">${won?`<span class="winchip" style="background:${p.color};color:#1a0f2e">WIN</span>`:''}</td>`:''}</tr>`;
       }
       return rows;
     }).join('')}
     </tbody></table>
+    ${lockBar(ri,gid)}
   </div>`;
+}
+function lockBar(ri,gid){
+  const g=S.gauntlet, meta=metaFor(ri), locks=meta.locks||{}, done=!!meta.done;
+  const isHost=S.me&&g.player_ids[0]===S.me.id;
+  const mineIn=S.me&&g.player_ids.includes(S.me.id);
+  const allLocked=g.player_ids.length>0&&g.player_ids.every(pid=>locks[pid]);
+  const pills=g.player_ids.map(pid=>{const pr=profById(pid);return `<span class="lockpill ${locks[pid]?'on':''}" style="${locks[pid]?'':'color:'+(pr?pr.color:'var(--muted)')}">${esc(pr?pr.name:'?')}${locks[pid]?' ✓':''}</span>`;}).join('');
+  let right='';
+  if(done){
+    const win=roundWinners(ri,gid).map(profById).filter(Boolean);
+    const label=win.length?(win.length>1?win.map(p=>p.name).join(' & ')+' tie':win[0].name+' wins'):'no scores';
+    right=`<span class="donebadge">ROUND COMPLETE · ${esc(label)}</span>${isHost?`<button class="btn ghost sm" onclick="reopenRound(${ri})">Reopen</button>`:''}`;
+  } else {
+    if(mineIn) right+=`<button class="btn ${locks[S.me.id]?'ghost':'blue'} sm" onclick="${locks[S.me.id]?`unlockMine(${ri})`:`lockMine(${ri})`}">${locks[S.me.id]?'Unlock my score':'Lock my score'}</button> `;
+    if(isHost) right+=`<button class="btn gold sm" ${allLocked?'':'disabled'} onclick="roundComplete(${ri})">Round complete</button>`;
+  }
+  return `<div class="lockbar">${pills}<span style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">${right}</span></div>`;
+}
+async function setLock(ri,pid,val){
+  const rm={...(S.gauntlet.round_meta||{})}; const r={...(rm[ri]||{})}; const locks={...(r.locks||{})};
+  if(val) locks[pid]=true; else delete locks[pid];
+  r.locks=locks; rm[ri]=r; S.gauntlet.round_meta=rm;
+  await sb.from('gauntlets').update({round_meta:rm}).eq('id',S.gauntlet.id);
+  boardScreen();
+}
+function lockMine(ri){ if(S.me) setLock(ri,S.me.id,true); }
+function unlockMine(ri){ if(S.me) setLock(ri,S.me.id,false); }
+async function roundComplete(ri){
+  const g=S.gauntlet; if(!(S.me&&g.player_ids[0]===S.me.id)) return;
+  const rm={...(g.round_meta||{})}; const r={...(rm[ri]||{})}; const locks=r.locks||{};
+  if(!g.player_ids.every(pid=>locks[pid])) return toast('Everyone needs to lock their score first');
+  r.done=true; rm[ri]=r; S.gauntlet.round_meta=rm;
+  await sb.from('gauntlets').update({round_meta:rm}).eq('id',g.id);
+  boardScreen(); celebrateRound(ri);
+}
+async function reopenRound(ri){
+  const g=S.gauntlet; if(!(S.me&&g.player_ids[0]===S.me.id)) return;
+  const rm={...(g.round_meta||{})}; const r={...(rm[ri]||{})}; r.done=false; rm[ri]=r; S.gauntlet.round_meta=rm;
+  await sb.from('gauntlets').update({round_meta:rm}).eq('id',g.id);
+  boardScreen();
 }
 let saveTimer={};
 function setRaw(ri,pid,key,val){
@@ -736,79 +1344,31 @@ async function setMatchMode(ri,matchNum,mode){
 }
 /* live refresh without full rerender: update scores, gems, totals */
 function refreshBoardLive(){
-  const g=S.gauntlet,t=totals(),w=roundsWon(),maxTot=Math.max(...Object.values(t));
-  const ps=g.player_ids.map(profById);
-  g.player_ids.forEach((p,pi)=>{
-    const strip=document.querySelectorAll('.pscore')[pi]; if(!strip)return;
-    strip.querySelector('.tot').innerHTML=t[p]+(t[p]===maxTot&&maxTot>0?' <span class="leadtag">LEAD</span>':'');
-    const col=profById(p).color;
-    strip.querySelector('.gems').innerHTML=Array.from({length:w[p]||0}).map(()=>`<span class="gem" style="background:${col}"></span>`).join('')||'<span class="muted small">no rounds won</span>';
+  const g=S.gauntlet,t=totals(),w=roundsWon(),maxTot=Math.max(0,...Object.values(t));
+  g.player_ids.forEach(pid=>{
+    const card=document.getElementById('sb-'+pid); if(!card)return;
+    const pr=profById(pid); const lead=t[pid]===maxTot&&maxTot>0;
+    card.classList.toggle('lead',lead);
+    const tot=card.querySelector('.sb-tot'); if(tot)tot.innerHTML=(t[pid]||0)+(lead?' <span class="leadtag">LEAD</span>':'');
+    const gems=card.querySelector('.gems'); if(gems&&pr)gems.innerHTML=gemsHtml(pr,w[pid]||0);
   });
-  const rd=document.getElementById('rounds');
-  if(rd) rd.innerHTML=g.game_ids.map((gid,ri)=>gameBlock(gid,ri,ps)).join('');
+  document.querySelectorAll('.rounds-grid .gblock').forEach((block,ri)=>{
+    const gid=g.game_ids[ri]; if(!gid)return;
+    const winners=roundWinners(ri,gid);
+    block.querySelectorAll('.sc').forEach((sc,si)=>{ const pid=g.player_ids[si]; if(!pid)return; sc.textContent=scaledFor(ri,gid,pid); });
+    block.querySelectorAll('.wincell').forEach((wc,si)=>{ const pid=g.player_ids[si]; if(!pid)return;
+      wc.innerHTML=winners.includes(pid)?`<span class="winchip" style="background:${profById(pid).color};color:#1a0f2e">WIN</span>`:''; });
+  });
 }
 
 /* ---- EDIT GAUNTLET ---- */
+/* ---- EDIT GAUNTLET (host only) ---- */
 function editGauntlet(){
-  const g=S.gauntlet; const myCoins=S.me?S.me.coins||0:0;
-  const myOwned=(S.me&&S.me.owned)||[];
-  const noScores=!g.game_ids.some((gid,ri)=>g.player_ids.some(p=>{
-    const s=S.scores.find(x=>x.round_index===ri&&x.profile_id===p);
-    return s&&Object.values(s.raw||{}).some(v=>v!==''&&v!=null&&v!==false&&v!==0);
-  }));
+  const g=S.gauntlet;
   app.innerHTML=`<div class="topbar"><button class="btn ghost sm" onclick="boardScreen()">&larr; Board</button>
-    <div class="pixel" style="font-size:18px"><img src="rz_logo.png" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:8px">SHOP</div>
-    <span style="color:var(--gold);font-weight:700;font-size:20px">${myCoins} coins</span></div>
-  <div class="card"><h3 style="margin-bottom:12px">Round actions</h3>
-    <button class="btn gold" style="width:100%;margin-bottom:8px;text-align:left" ${myCoins<COINS.reroll?'disabled':''} onclick="shopReroll()">Re-roll a round <span class="muted small">${COINS.reroll} coins</span></button>
-    <button class="btn" style="width:100%;margin-bottom:8px;text-align:left" ${myCoins<COINS.replay?'disabled':''} onclick="shopReplay()">Re-play a round <span class="muted small">${COINS.replay} coins</span></button>
-    <button class="btn" style="width:100%;margin-bottom:8px;text-align:left" ${myCoins<COINS.removeRandom?'disabled':''} onclick="shopRemove('random')">Remove + add random <span class="muted small">${COINS.removeRandom} coins</span></button>
-    <button class="btn" style="width:100%;margin-bottom:8px;text-align:left" ${myCoins<COINS.removeChoice?'disabled':''} onclick="shopRemove('choice')">Remove + add your choice <span class="muted small">${COINS.removeChoice} coins</span></button>
-  </div>
-  <div class="card" style="margin-top:12px"><h3 style="margin-bottom:12px">Gauntlet actions (start only)</h3>
-    <button class="btn" style="width:100%;margin-bottom:8px;text-align:left" ${myCoins<COINS.rerollAll||!noScores?'disabled':''} onclick="shopRerollAll('random')">Re-roll entire gauntlet (random) <span class="muted small">${COINS.rerollAll} coins</span></button>
-    <button class="btn" style="width:100%;margin-bottom:8px;text-align:left" ${myCoins<COINS.rerollAllChoice||!noScores?'disabled':''} onclick="shopRerollAll('choice')">Re-roll entire gauntlet (your choice) <span class="muted small">${COINS.rerollAllChoice} coins</span></button>
-    ${!noScores?'<div class="muted small">Disabled after scores are entered.</div>':''}
-  </div>
-  <div class="card" style="margin-top:12px"><h3 style="margin-bottom:12px">Anytime</h3>
-    <button class="btn pink" style="width:100%;text-align:left" ${myCoins<COINS.shot?'disabled':''} onclick="spendShot()">Give a shot <span class="muted small">${COINS.shot} coins</span></button>
-  </div>
-  <div class="card" style="margin-top:12px"><h3 style="margin-bottom:12px">Characters (250 coins)</h3>
-    <div class="charGrid" style="grid-template-columns:repeat(3,1fr)">${SHOP_CHARS.map(c=>{
-      const owned=myOwned.includes(c.id);
-      return `<div class="char" style="cursor:${owned?'default':'pointer'}">
-        <img class="charimg" src="./${c.id}.png" onerror="this.style.background='var(--panel2)'">
-        <div class="nm">${c.name}</div>
-        ${owned?'<div class="small" style="color:var(--gold)">owned</div>'
-          :`<button class="btn sm gold" ${myCoins<250?'disabled':''} onclick="buyShopChar('${c.id}','${c.name}',250)">Buy 250</button>`}
-      </div>`;}).join('')}</div>
-  </div>
-  <div class="card" style="margin-top:12px"><h3 style="margin-bottom:12px">Cursors (500 coins)</h3>
-    <div class="charGrid" style="grid-template-columns:repeat(3,1fr)">${CURSORS.map(c=>{
-      const owned=myOwned.includes(c.id); const active=S.me&&S.me.cursor===c.id;
-      return `<div class="char" style="cursor:${owned?'default':'pointer'}">
-        <div style="width:72px;height:72px;border-radius:50%;background:var(--panel);display:flex;align-items:center;justify-content:center"><img src="data:image/svg+xml,${c.svg}" style="width:32px;height:32px"></div>
-        <div class="nm">${c.name}</div>
-        ${owned?(active?'<div class="small" style="color:var(--gold)">active</div>':`<button class="btn sm" onclick="applyCursor('${c.id}')">Use</button>`)
-          :`<button class="btn sm gold" ${myCoins<500?'disabled':''} onclick="buyCursor('${c.id}','${c.name}',500)">Buy 500</button>`}
-      </div>`;}).join('')}
-      ${S.me&&S.me.cursor?`<button class="btn ghost sm" style="margin-top:8px" onclick="applyCursor('')">Reset to default cursor</button>`:''}</div>
-  </div>
-  <div class="card" style="margin-top:12px"><h3 style="margin-bottom:12px">Themes (1000 coins)</h3>
-    <div class="charGrid" style="grid-template-columns:repeat(3,1fr)">${THEMES.map(t=>{
-      const owned=myOwned.includes(t.id); const active=S.me&&S.me.theme===t.id;
-      const preview=Object.entries(t.vars).slice(0,3).map(([k,v])=>`<span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:${v}"></span>`).join('');
-      return `<div class="char" style="cursor:${owned?'default':'pointer'}">
-        <div style="display:flex;gap:4px;margin-bottom:4px">${preview}</div>
-        <div class="nm">${t.name}</div>
-        ${owned?(active?'<div class="small" style="color:var(--gold)">active</div>':`<button class="btn sm" onclick="applyTheme('${t.id}')">Use</button>`)
-          :`<button class="btn sm gold" ${myCoins<1000?'disabled':''} onclick="buyTheme('${t.id}','${t.name}',1000)">Buy 1000</button>`}
-      </div>`;}).join('')}
-      ${S.me&&S.me.theme?`<button class="btn ghost sm" style="margin-top:8px" onclick="applyTheme('')">Reset to default theme</button>`:''}</div>
-  </div>
-  <div class="muted small" style="margin-top:14px;text-align:center">Coins = your winning margin. Win by 300, earn 300.</div>
-  <div class="card" style="margin-top:14px"><h3 style="margin-bottom:12px">Free edits</h3>
-    <div class="field"><label>Current rounds (change freely)</label>
+    <div class="pixel" style="font-size:18px"><img src="rz_logo.png" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:8px">EDIT GAUNTLET</div><div></div></div>
+  <div class="card"><h3 style="margin-bottom:12px">Rounds</h3>
+    <div class="field"><label>Change, add, or remove rounds</label>
       ${g.game_ids.map((gid,i)=>`<div class="row" style="justify-content:flex-start;margin-bottom:8px">
         <span class="muted small" style="width:60px">Round ${i+1}</span>
         <select onchange="freeSwap(${i},this.value)" style="max-width:200px">
@@ -823,8 +1383,174 @@ function editGauntlet(){
       </div>
     </div>
   </div>
-  <button class="btn pink lg" style="margin-top:14px" onclick="boardScreen()">Done</button>
+  <button class="btn pink lg" style="margin-top:14px" onclick="boardScreen()">Done</button>`;
+}
+
+/* ---- SHOP (tabbed) ---- */
+function openShop(tab){
+  if(tab) S._shopTab=tab; if(!S._shopTab) S._shopTab='powerups';
+  const g=S.gauntlet; let t=S._shopTab;
+  if(t==='powerups'&&!g){ t=S._shopTab='chars'; }
+  const myCoins=S.me?S.me.coins||0:0; const myOwned=(S.me&&S.me.owned)||[];
+  app.innerHTML=`<div class="topbar"><button class="btn ghost sm" onclick="${g?'boardScreen()':"go('landing')"}">&larr; ${g?'Board':'Home'}</button>
+    <div class="pixel" style="font-size:18px"><img src="rz_logo.png" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:8px">SHOP</div>
+    <span style="color:var(--gold);font-weight:700;font-size:20px">${myCoins} coins</span></div>
+  <div class="tabs">
+    ${g?`<button class="tab ${t==='powerups'?'on':''}" onclick="openShop('powerups')">Power-ups</button>`:''}
+    <button class="tab ${t==='chars'?'on':''}" onclick="openShop('chars')">Characters</button>
+    <button class="tab ${t==='cursors'?'on':''}" onclick="openShop('cursors')">Cursors</button>
+    <button class="tab ${t==='plates'?'on':''}" onclick="openShop('plates')">Nameplates</button>
+    <button class="tab ${t==='anims'?'on':''}" onclick="openShop('anims')">Win animations</button>
+    <button class="tab ${t==='themes'?'on':''}" onclick="openShop('themes')">Themes</button>
+  </div>
+  <div id="shopBody">${
+    t==='powerups'?shopPowerups(g,myCoins)
+    :t==='chars'?shopChars(myOwned,myCoins)
+    :t==='cursors'?shopCursors(myOwned,myCoins)
+    :t==='plates'?shopPlates(myOwned,myCoins)
+    :t==='anims'?shopAnims(myOwned,myCoins)
+    :shopThemes(myOwned,myCoins)
+  }</div>
+  <div class="muted small" style="margin:16px 0 40px;text-align:center">Coins = your winning margin. Win by 300, earn 300.</div>
   <div id="shopModal"></div>`;
+}
+function shopPowerups(g,myCoins){
+  const noScores=g?!g.game_ids.some((gid,ri)=>g.player_ids.some(p=>{
+    const s=S.scores.find(x=>x.round_index===ri&&x.profile_id===p);
+    return s&&Object.values(s.raw||{}).some(v=>v!==''&&v!=null&&v!==false&&v!==0);})):true;
+  return `<div class="card"><h3 style="margin-bottom:12px">Power-ups</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="btn gold" ${myCoins<COINS.reroll?'disabled':''} onclick="shopReroll()">Re-roll round<br><span class="small">${COINS.reroll}</span></button>
+      <button class="btn" ${myCoins<COINS.replay?'disabled':''} onclick="shopReplay()">Re-play round<br><span class="small">${COINS.replay}</span></button>
+      <button class="btn" ${myCoins<COINS.removeRandom?'disabled':''} onclick="shopRemove('random')">Remove + random<br><span class="small">${COINS.removeRandom}</span></button>
+      <button class="btn" ${myCoins<COINS.removeChoice?'disabled':''} onclick="shopRemove('choice')">Remove + choice<br><span class="small">${COINS.removeChoice}</span></button>
+      <button class="btn" ${myCoins<COINS.rerollAll||!noScores?'disabled':''} onclick="shopRerollAll('random')">Re-roll all (random)<br><span class="small">${COINS.rerollAll}</span></button>
+      <button class="btn" ${myCoins<COINS.rerollAllChoice||!noScores?'disabled':''} onclick="shopRerollAll('choice')">Re-roll all (choice)<br><span class="small">${COINS.rerollAllChoice}</span></button>
+    </div>
+    <button class="btn pink" style="width:100%;margin-top:8px" ${myCoins<COINS.shot?'disabled':''} onclick="spendShot()">Give a shot<span class="small" style="margin-left:8px">${COINS.shot}</span></button>
+  </div>`;
+}
+function shopChars(myOwned,myCoins){
+  return `<div class="card"><h3 style="margin-bottom:4px">Characters <span class="muted small">250 coins</span></h3>
+    <div class="muted small" style="margin-bottom:12px">Extra icons you can switch to from Change icon.</div>
+    <div class="shop-grid">${SHOP_CHARS.map(c=>{const owned=myOwned.includes(c.id);
+      return `<div class="shop-tile ${owned?'active':''}">
+        <div class="swatch"><img src="./${c.id}.png" onerror="this.style.background='var(--panel2)'" style="width:74px;height:74px;border-radius:50%;image-rendering:pixelated;object-fit:cover"></div>
+        <div class="nm">${c.name}</div>
+        ${owned?'<div class="small" style="color:var(--gold)">owned</div>'
+          :`<button class="btn sm gold" ${myCoins<250?'disabled':''} onclick="buyShopChar('${c.id}','${c.name}',250)">250</button>`}
+      </div>`;}).join('')}</div></div>`;
+}
+function shopCursors(myOwned,myCoins){
+  const tile=(c,rare)=>{
+    const ownedShop=myOwned.includes(c.id); const ownedRare=ownsRare(c.id); const owned=ownedShop||ownedRare;
+    const active=S.me&&S.me.cursor===c.id;
+    return `<div class="shop-tile ${active?'active':''} ${rare&&!owned?'locked':''}">
+      <div class="swatch"><img src="data:image/svg+xml,${c.svg}" style="width:38px;height:38px"></div>
+      <div class="nm">${c.name}${rare?' <span class="small" style="color:var(--gold)">rare</span>':''}</div>
+      ${owned?(active?'<div class="small" style="color:var(--gold)">active</div>':`<button class="btn sm" onclick="applyCursor('${c.id}')">Use</button>`)
+        :rare?'<div class="small muted">win to earn</div>'
+        :`<button class="btn sm gold" ${myCoins<c.cost?'disabled':''} onclick="buyCursor('${c.id}','${c.name}',${c.cost})">${c.cost}</button>`}
+    </div>`;
+  };
+  return `<div class="card"><h3 style="margin-bottom:4px">Cursors <span class="muted small">500 coins</span></h3>
+    <div class="muted small" style="margin-bottom:12px">Buy what you like. Rare cursors only drop from gauntlet wins (1 in 200).</div>
+    <div class="shop-grid">${CURSORS.map(c=>tile(c,false)).join('')}</div>
+    <h3 style="margin:16px 0 4px">Rare cursors</h3>
+    <div class="muted small" style="margin-bottom:12px">Earned only. Same 1-in-200 odds as rare icons, rolled when you win a whole gauntlet.</div>
+    <div class="shop-grid">${RARE_CURSORS.map(c=>tile(c,true)).join('')}</div>
+    ${S.me&&S.me.cursor?`<button class="btn ghost sm" style="margin-top:12px" onclick="resetCursorShop()">Reset cursor</button>`:''}</div>`;
+}
+function shopPlates(myOwned,myCoins){
+  const cur=S.me?S.me.nameplate:null;
+  const myColor=S.me?S.me.color:'#f06b9a';
+  const presets=NAMEPLATE_PRESETS.map(c=>{const val='solid:'+c; const on=cur===val||(!cur&&c===myColor);
+    return `<span class="${on?'on':''}" style="background:${c}" onclick="applyNameplate('${val}')" title="${c}"></span>`;}).join('');
+  return `<div class="card"><h3 style="margin-bottom:4px">Nameplates <span class="muted small">500 coins</span></h3>
+    <div class="muted small" style="margin-bottom:12px">The card behind your name on the scoreboard. Patterns tint to your color.</div>
+    <div class="shop-tile ${!cur||cur.startsWith('solid:')?'active':''}" style="align-items:stretch;margin-bottom:14px">
+      <div class="np-prev" style="background:${nameplateCSS(cur&&cur.startsWith('solid:')?cur:null,myColor)}"></div>
+      <div class="nm">Solid color${!cur?' (default)':''}</div>
+      <div class="npcolor">${presets}</div>
+    </div>
+    <div class="shop-grid">${NAMEPLATES.map(n=>{const owned=myOwned.includes(n.id); const active=cur===n.id;
+      return `<div class="shop-tile ${active?'active':''}">
+        <div class="np-prev" style="background:${n.css(myColor)}"></div>
+        <div class="nm">${n.name}</div>
+        ${owned?(active?'<div class="small" style="color:var(--gold)">active</div>':`<button class="btn sm" onclick="applyNameplate('${n.id}')">Use</button>`)
+          :`<button class="btn sm gold" ${myCoins<n.cost?'disabled':''} onclick="buyNameplate('${n.id}','${n.name}',${n.cost})">${n.cost}</button>`}
+      </div>`;}).join('')}</div></div>`;
+}
+function shopAnims(myOwned,myCoins){
+  const cur=(S.me&&S.me.win_anim)||'';
+  const def=`<div class="shop-tile ${cur===''?'active':''}">
+    <div class="anim-prev" style="gap:10px;background:#0c0a18"><span class="anim-dot" style="width:18px;height:18px;background:var(--green)"></span><span class="anim-dot" style="width:18px;height:18px;background:var(--red)"></span></div>
+    <div class="nm">Default flash <span class="small muted">free</span></div>
+    <div class="small muted">Winner green, losers red</div>
+    ${cur===''?'<div class="small" style="color:var(--gold)">active</div>':`<button class="btn sm" onclick="applyWinAnim('')">Use</button>`}
+  </div>`;
+  return `<div class="card"><h3 style="margin-bottom:4px">Win animations <span class="muted small">800 coins</span></h3>
+    <div class="muted small" style="margin-bottom:12px">Plays on your scoreboard bubble when you win a round. Fireworks, trumpets, confetti. Default is a quick green/red flash.</div>
+    <div class="shop-grid">${def}${WIN_ANIMS.map(a=>{const owned=myOwned.includes(a.id); const active=cur===a.id;
+      const dots=a.colors.slice(0,6).map(c=>`<span class="anim-dot" style="background:${c}"></span>`).join('');
+      return `<div class="shop-tile ${active?'active':''}">
+        <div class="anim-prev">${dots}</div>
+        <div class="nm">${a.name}</div>
+        ${owned?(active?'<div class="small" style="color:var(--gold)">active</div>'
+            :`<button class="btn sm" onclick="applyWinAnim('${a.id}')">Use</button> <button class="btn ghost sm" onclick="previewWinAnim('${a.id}')">Preview</button>`)
+          :`<button class="btn sm gold" ${myCoins<a.cost?'disabled':''} onclick="buyWinAnim('${a.id}','${a.name}',${a.cost})">${a.cost}</button> <button class="btn ghost sm" onclick="previewWinAnim('${a.id}')">Preview</button>`}
+      </div>`;}).join('')}</div></div>`;
+}
+function shopThemes(myOwned,myCoins){
+  return `<div class="card"><h3 style="margin-bottom:4px">Themes <span class="muted small">1000 coins</span></h3>
+    <div class="muted small" style="margin-bottom:12px">Recolors the whole app. One distinct hue each.</div>
+    <div class="shop-grid">${THEMES.map(t=>{const owned=myOwned.includes(t.id); const active=S.me&&S.me.theme===t.id;
+      const sw=[t.vars['--pink'],t.vars['--blue'],t.vars['--purple'],t.vars['--bg2']].filter(Boolean);
+      return `<div class="shop-tile ${active?'active':''}">
+        <div class="swatch" style="background:${t.vars['--bg']||'var(--bg2)'};gap:4px">${sw.map(v=>`<span style="width:16px;height:30px;border-radius:4px;background:${v}"></span>`).join('')}</div>
+        <div class="nm">${t.name}</div>
+        ${owned?(active?'<div class="small" style="color:var(--gold)">active</div>':`<button class="btn sm" onclick="applyTheme('${t.id}')">Use</button>`)
+          :`<button class="btn sm gold" ${myCoins<1000?'disabled':''} onclick="buyTheme('${t.id}','${t.name}',1000)">1000</button>`}
+      </div>`;}).join('')}</div>
+      ${S.me&&S.me.theme?`<button class="btn ghost sm" style="margin-top:12px" onclick="resetThemeShop()">Reset theme</button>`:''}</div>`;
+}
+function resetCursorShop(){ resetCursor().then(()=>openShop('cursors')); }
+function resetThemeShop(){ resetTheme().then(()=>openShop('themes')); }
+async function buyNameplate(id,name,cost){
+  if(!await spendCoins(cost)) return;
+  const owned=[...(S.me.owned||[]),id];
+  await sb.from('profiles').update({owned,nameplate:id}).eq('id',S.me.id);
+  S.me.owned=owned; S.me.nameplate=id;
+  const i=S.profiles.findIndex(p=>p.id===S.me.id); if(i>=0){S.profiles[i].owned=owned;S.profiles[i].nameplate=id;}
+  toast('Unlocked & equipped '+name+'!'); openShop('plates');
+}
+async function applyNameplate(val){
+  await sb.from('profiles').update({nameplate:val||null}).eq('id',S.me.id);
+  S.me.nameplate=val||null;
+  const i=S.profiles.findIndex(p=>p.id===S.me.id); if(i>=0)S.profiles[i].nameplate=val||null;
+  openShop('plates');
+}
+async function buyWinAnim(id,name,cost){
+  if(!await spendCoins(cost)) return;
+  const owned=[...(S.me.owned||[]),id];
+  await sb.from('profiles').update({owned,win_anim:id}).eq('id',S.me.id);
+  S.me.owned=owned; S.me.win_anim=id;
+  const i=S.profiles.findIndex(p=>p.id===S.me.id); if(i>=0){S.profiles[i].owned=owned;S.profiles[i].win_anim=id;}
+  toast('Unlocked & equipped '+name+'!'); openShop('anims');
+}
+async function applyWinAnim(id){
+  await sb.from('profiles').update({win_anim:id||null}).eq('id',S.me.id);
+  S.me.win_anim=id||null;
+  const i=S.profiles.findIndex(p=>p.id===S.me.id); if(i>=0)S.profiles[i].win_anim=id||null;
+  openShop('anims');
+}
+function previewWinAnim(id){
+  const palette=winAnimById(id).colors;
+  if(prefersReducedMotion()){ toast('Preview plays with motion enabled'); return; }
+  const host=document.createElement('div'); host.style.cssText='position:fixed;left:50%;top:42%;width:300px;height:160px;transform:translate(-50%,-50%);z-index:97;pointer-events:none';
+  document.body.appendChild(host);
+  trumpetsIn(); fireworksOn(host,palette); burstConfetti(palette);
+  setTimeout(()=>host.remove(),2800);
 }
 function shopModal(title,body){
   const m=document.getElementById('shopModal')||document.body;
@@ -860,7 +1586,7 @@ async function execReroll(ri){
   S.gauntlet.game_ids[ri]=pick.id; await persistGames();
   await sb.from('scores').delete().eq('gauntlet_id',S.gauntlet.id).eq('round_index',ri);
   S.scores=S.scores.filter(s=>s.round_index!==ri);
-  toast('Re-rolled to '+pick.name+'! -'+COINS.reroll); editGauntlet();
+  toast('Re-rolled to '+pick.name+'! -'+COINS.reroll); openShop();
 }
 function shopReplay(){
   const g=S.gauntlet;
@@ -871,7 +1597,7 @@ async function execReplay(ri,gid){
   document.querySelector('.overlay')?.remove();
   if(!await spendCoins(COINS.replay)) return;
   S.gauntlet.game_ids.push(gid); await persistGames();
-  toast('Re-play added as Round '+(S.gauntlet.game_ids.length)+'! -'+COINS.replay); editGauntlet();
+  toast('Re-play added as Round '+(S.gauntlet.game_ids.length)+'! -'+COINS.replay); openShop();
 }
 function shopRemove(type){
   const g=S.gauntlet; const cost=type==='random'?COINS.removeRandom:COINS.removeChoice;
@@ -896,7 +1622,7 @@ async function execRemove(ri,type,cost){
   S.scores=S.scores.filter(s=>s.round_index!==ri);
   if(replacement) S.gauntlet.game_ids.push(replacement.id);
   await persistGames();
-  toast('Done!'+(replacement?' Added '+replacement.name:'')+' -'+cost); editGauntlet();
+  toast('Done!'+(replacement?' Added '+replacement.name:'')+' -'+cost); openShop();
 }
 async function shopRerollAll(type){
   const g=S.gauntlet; const cost=type==='random'?COINS.rerollAll:COINS.rerollAllChoice;
@@ -913,7 +1639,7 @@ async function shopRerollAll(type){
     const shuffled=[...pool].sort(()=>Math.random()-.5).slice(0,g.game_ids.length).map(d=>d.id);
     S.gauntlet.game_ids=shuffled; await persistGames();
     await sb.from('scores').delete().eq('gauntlet_id',g.id); S.scores=[];
-    toast('Gauntlet re-rolled! -'+cost); editGauntlet();
+    toast('Gauntlet re-rolled! -'+cost); openShop();
   }
 }
 async function addPick(id,name){
@@ -924,7 +1650,7 @@ async function addPick(id,name){
     if(!await spendCoins(window._pickCost)) return;
     S.gauntlet.game_ids=[...window._picks]; await persistGames();
     await sb.from('scores').delete().eq('gauntlet_id',S.gauntlet.id); S.scores=[];
-    toast('Gauntlet rebuilt! -'+window._pickCost); editGauntlet();
+    toast('Gauntlet rebuilt! -'+window._pickCost); openShop();
   }
 }
 async function spendShot(){
@@ -946,7 +1672,7 @@ async function buyShopChar(id,name,cost){
   const owned=[...(S.me.owned||[]),id];
   await sb.from('profiles').update({owned}).eq('id',S.me.id);
   S.me.owned=owned; const i=S.profiles.findIndex(p=>p.id===S.me.id); if(i>=0)S.profiles[i].owned=owned;
-  toast('Unlocked '+name+'!'); editGauntlet();
+  toast('Unlocked '+name+'!'); openShop();
 }
 async function buyCursor(id,name,cost){
   if(!await spendCoins(cost)) return;
@@ -954,15 +1680,15 @@ async function buyCursor(id,name,cost){
   await sb.from('profiles').update({owned,cursor:id}).eq('id',S.me.id);
   S.me.owned=owned; S.me.cursor=id;
   const i=S.profiles.findIndex(p=>p.id===S.me.id); if(i>=0){S.profiles[i].owned=owned;S.profiles[i].cursor=id;}
-  applyCursorCSS(id); toast('Unlocked & equipped '+name+'!'); editGauntlet();
+  applyCursorCSS(id); toast('Unlocked & equipped '+name+'!'); openShop();
 }
 async function applyCursor(id){
   await sb.from('profiles').update({cursor:id||null}).eq('id',S.me.id);
-  S.me.cursor=id||null; applyCursorCSS(id); editGauntlet();
+  S.me.cursor=id||null; applyCursorCSS(id); openShop();
 }
 function applyCursorCSS(id){
   if(!id){document.body.style.cursor='';return;}
-  const c=CURSORS.find(x=>x.id===id);
+  const c=cursorById(id);
   if(c) document.body.style.cursor=`url("data:image/svg+xml,${c.svg}") 16 16, auto`;
 }
 async function buyTheme(id,name,cost){
@@ -971,11 +1697,11 @@ async function buyTheme(id,name,cost){
   await sb.from('profiles').update({owned,theme:id}).eq('id',S.me.id);
   S.me.owned=owned; S.me.theme=id;
   const i=S.profiles.findIndex(p=>p.id===S.me.id); if(i>=0){S.profiles[i].owned=owned;S.profiles[i].theme=id;}
-  applyThemeCSS(id); toast('Unlocked & equipped '+name+'!'); editGauntlet();
+  applyThemeCSS(id); toast('Unlocked & equipped '+name+'!'); openShop();
 }
 async function applyTheme(id){
   await sb.from('profiles').update({theme:id||null}).eq('id',S.me.id);
-  S.me.theme=id||null; applyThemeCSS(id); editGauntlet();
+  S.me.theme=id||null; applyThemeCSS(id); openShop();
 }
 function applyThemeCSS(id){
   const root=document.documentElement;
@@ -1000,9 +1726,9 @@ function dropToast(d){
   const t=document.createElement('div'); t.className='toast';
   t.style.borderColor='var(--gold)'; t.style.boxShadow='0 0 24px rgba(245,196,81,.5)';
   t.innerHTML=`<div style="display:flex;align-items:center;gap:10px">
-    <div class="av sm" style="background:var(--panel2)"><img src="./${d.character_id}.png" onerror="this.style.display='none';this.parentNode.textContent='!'" style="width:100%;height:100%;border-radius:50%"></div>
+    <div class="av sm" style="background:var(--panel2)">${dropVisual(d.character_id)}</div>
     <div><div style="font-weight:800;color:var(--gold)">RARE DROP</div>
-    <div class="small"><b style="color:${col}">${esc(nm)}</b> unlocked ${esc(RARE_NAMES[d.character_id]||d.character_id)}</div></div></div>`;
+    <div class="small"><b style="color:${col}">${esc(nm)}</b> unlocked ${esc(dropName(d.character_id))}</div></div></div>`;
   document.body.appendChild(t); setTimeout(()=>t.remove(),5000);
 }
 async function processUnlocks(g, roundWinnersArr, gauntletWinner){
@@ -1025,6 +1751,7 @@ async function processUnlocks(g, roundWinnersArr, gauntletWinner){
   g.game_ids.forEach((gid,ri)=>{ const rare=GAME_RARES[gid]; if(!rare) return;
     (roundWinnersArr[ri]||[]).forEach(p=>roll(p,rare,'game',gid)); });
   if(gauntletWinner) RARES_GAUNTLET.forEach(r=>roll(gauntletWinner,r.id,'gauntlet','gauntlet'));
+  if(gauntletWinner) RARE_CURSORS.filter(c=>c.source==='gauntlet').forEach(c=>roll(gauntletWinner,c.id,'cursor','gauntlet'));
   for(const pid of ids){ await sb.from('profiles').update({roll_counts:rc[pid]}).eq('id',pid); }
   if(newDrops.length) await sb.from('drops').insert(newDrops);
   return newDrops;
@@ -1057,6 +1784,7 @@ async function finishGauntlet(){
     pr.coins=nc; if(S.me&&S.me.id===winner) S.me.coins=nc;
     toast(esc(pr.name)+' earned '+margin+' coins');
   }
+  await loadBadges();
   go('result');
 }
 function resultScreen(){
@@ -1085,7 +1813,7 @@ function resultScreen(){
     <button class="btn pink lg" onclick="playAgain()">Play Again</button>
     <button class="btn ghost lg" onclick="go('landing')">Quit</button>
   </div>
-  <div class="row" style="margin-top:14px;margin-bottom:240px">
+  <div class="row" style="margin-top:14px;margin-bottom:40px">
     ${topTie?'':`<button class="btn lg" style="background:var(--red)" onclick="proposeSD()">Sudden Death</button>`}
   </div>
   <div id="sdMount"></div>`;
@@ -1186,15 +1914,18 @@ async function finishSD(){
   app.innerHTML=`<div class="result-hero"><div class="pixel muted" style="font-size:11px;margin-bottom:14px">SUDDEN DEATH RESULT</div>
     ${tie?'<div class="big" style="color:var(--gold)">TIE</div>':`${avatar(winnerP,'lg')}<div class="big" style="color:${winnerP.color};margin-top:12px">${esc(winnerP.name)} WINS</div>`}
     <div class="muted" style="margin-top:10px">Loser buys dinner (Meal Wheel).</div></div>
-    <div class="row" style="margin-top:20px;margin-bottom:200px"><button class="btn pink lg" onclick="playAgain()">Play Again</button>
+    <div class="row" style="margin-top:20px;margin-bottom:40px"><button class="btn pink lg" onclick="playAgain()">Play Again</button>
     <button class="btn ghost lg" onclick="go('landing')">Quit</button></div>`;
 }
 
 /* ---- HISCORES ---- */
-async function hiscoresScreen(){
-  const [{data:res},{data:allDrops}]=await Promise.all([
+async function hiscoresScreen(tab){
+  if(tab) S._hsTab=tab; if(!S._hsTab) S._hsTab='overall';
+  const t=S._hsTab;
+  const [{data:res},{data:allDrops},{data:scoreRows}]=await Promise.all([
     sb.from('results').select('*').order('finished_at',{ascending:false}).limit(500),
-    sb.from('drops').select('*').order('created_at',{ascending:false}).limit(200)
+    sb.from('drops').select('*').order('created_at',{ascending:false}).limit(200),
+    sb.from('scores').select('profile_id,game_id,scaled')
   ]);
   const wins={},sdInit={},sdWins={},perGame={},played={};
   S.profiles.forEach(p=>{wins[p.id]=0;sdInit[p.id]=0;sdWins[p.id]=0;played[p.id]=0;});
@@ -1208,45 +1939,146 @@ async function hiscoresScreen(){
     if(r.sudden_death&&r.sd_winner)sdWins[r.sd_winner]=(sdWins[r.sd_winner]||0)+1;
     if(r.per_game_winners)Object.entries(r.per_game_winners).forEach(([gid,pid])=>{if(perGame[gid]&&perGame[gid][pid]!=null)perGame[gid][pid]++;});
   });
-  const ranked=[...S.profiles].sort((a,b)=>(wins[b.id]||0)-(wins[a.id]||0));
-  app.innerHTML=`<div class="topbar"><button class="btn ghost sm" onclick="go(S.gauntlet?'board':'landing')">&larr; Back</button>
+  // points (running totals) overall + by game, and top-3 single scores per game
+  const ptsTotal={},ptsGame={},topByGame={};
+  S.profiles.forEach(p=>{ptsTotal[p.id]=0;});
+  S.defs.forEach(d=>{ptsGame[d.id]={};topByGame[d.id]=[];S.profiles.forEach(p=>ptsGame[d.id][p.id]=0);});
+  (scoreRows||[]).forEach(r=>{ if(r.scaled==null)return;
+    if(ptsTotal[r.profile_id]!=null) ptsTotal[r.profile_id]+=r.scaled;
+    if(ptsGame[r.game_id]&&ptsGame[r.game_id][r.profile_id]!=null) ptsGame[r.game_id][r.profile_id]+=r.scaled;
+    if(r.scaled>0&&topByGame[r.game_id]) topByGame[r.game_id].push({pid:r.profile_id,scaled:r.scaled});
+  });
+  Object.keys(topByGame).forEach(gid=>{ topByGame[gid].sort((a,b)=>b.scaled-a.scaled); topByGame[gid]=topByGame[gid].slice(0,3); });
+  const ranked=[...S.profiles].sort((a,b)=>(wins[b.id]||0)-(wins[a.id]||0)||(ptsTotal[b.id]||0)-(ptsTotal[a.id]||0));
+  const header=`<div class="topbar"><button class="btn ghost sm" onclick="go(S.gauntlet?'board':'landing')">&larr; Back</button>
     <div class="pixel" style="font-size:18px"><img src="rz_logo.png" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:8px">HISCORES</div><div></div></div>
+    <div class="tabs"><button class="tab ${t==='overall'?'on':''}" onclick="hiscoresScreen('overall')">Overall</button>
+    <button class="tab ${t==='bygame'?'on':''}" onclick="hiscoresScreen('bygame')">By game</button></div>`;
+  if(t==='bygame'){
+    app.innerHTML=`${header}
+    <div class="muted small" style="margin-bottom:12px">Top 3 highest single-round scores for each game. Hold a spot and you earn its medal next to your name.</div>
+    ${S.defs.map(d=>`<div class="card" style="margin-bottom:14px"><h3 style="margin-bottom:10px">${esc(d.name)}</h3>
+      ${topByGame[d.id].length?`<table class="hs-table"><tbody>${topByGame[d.id].map((row,i)=>{const pr=profById(row.pid);return `<tr>
+        <td style="width:42px">${medalSVG(i+1,d.id)}</td>
+        <td style="width:46px">${pr?avatar(pr,'sm'):''}</td>
+        <td style="text-align:left;color:${pr?pr.color:''};font-weight:700">${esc(pr?pr.name:'?')}</td>
+        <td class="pixel" style="color:var(--gold)">${row.scaled}</td></tr>`;}).join('')}</tbody></table>`:'<div class="muted small">No scores recorded yet.</div>'}
+    </div>`).join('')}`;
+    return;
+  }
+  app.innerHTML=`${header}
   <div class="card"><h3 style="margin-bottom:12px">Gauntlet wins</h3>
-    <table class="hs-table"><thead><tr><th></th><th>Player</th><th>Wins</th><th>Played</th><th>SD called</th><th>SD wins</th></tr></thead>
-    <tbody>${ranked.map((p,i)=>`<tr><td>${avatar(p,'sm')}</td><td style="color:${p.color};font-weight:700">${esc(p.name)}</td>
-      <td class="pixel">${wins[p.id]||0}</td><td>${played[p.id]||0}</td><td>${sdInit[p.id]||0}</td><td>${sdWins[p.id]||0}</td></tr>`).join('')}</tbody></table>
+    <table class="hs-table"><thead><tr><th></th><th>Player</th><th>Wins</th><th>Played</th><th>Total pts</th><th>SD called</th><th>SD wins</th></tr></thead>
+    <tbody>${ranked.map(p=>`<tr><td>${avatar(p,'sm')}</td><td style="color:${p.color};font-weight:700">${esc(p.name)}${badgeHtml(p.id)}</td>
+      <td class="pixel">${wins[p.id]||0}</td><td>${played[p.id]||0}</td><td class="pixel" style="color:var(--gold)">${ptsTotal[p.id]||0}</td><td>${sdInit[p.id]||0}</td><td>${sdWins[p.id]||0}</td></tr>`).join('')}</tbody></table>
+  </div>
+  <div class="card" style="margin-top:14px"><h3 style="margin-bottom:12px">Total points by game</h3>
+    <div style="overflow-x:auto"><table class="hs-table"><thead><tr><th>Game</th>${S.profiles.map(p=>`<th style="color:${p.color}">${esc(p.name)}</th>`).join('')}</tr></thead>
+    <tbody>${S.defs.map(d=>`<tr><td style="text-align:left;font-weight:700">${esc(d.name)}</td>${S.profiles.map(p=>`<td class="pixel">${ptsGame[d.id][p.id]||0}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
   </div>
   <div class="card" style="margin-top:14px"><h3 style="margin-bottom:12px">Per-game wins</h3>
-    <table class="hs-table"><thead><tr><th>Game</th>${S.profiles.map(p=>`<th style="color:${p.color}">${esc(p.name)}</th>`).join('')}</tr></thead>
-    <tbody>${S.defs.map(d=>`<tr><td style="text-align:left;font-weight:700">${esc(d.name)}</td>${S.profiles.map(p=>`<td>${perGame[d.id][p.id]||0}</td>`).join('')}</tr>`).join('')}</tbody></table>
+    <div style="overflow-x:auto"><table class="hs-table"><thead><tr><th>Game</th>${S.profiles.map(p=>`<th style="color:${p.color}">${esc(p.name)}</th>`).join('')}</tr></thead>
+    <tbody>${S.defs.map(d=>`<tr><td style="text-align:left;font-weight:700">${esc(d.name)}</td>${S.profiles.map(p=>`<td>${perGame[d.id][p.id]||0}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
   </div>
   <div class="card" style="margin-top:14px"><h3 style="margin-bottom:12px">Collections</h3>
     ${S.profiles.map(p=>{const mine=(allDrops||[]).filter(d=>d.profile_id===p.id);
-      return `<div style="margin-bottom:12px"><div style="font-weight:700;color:${p.color};margin-bottom:6px">${esc(p.name)} <span class="muted small">(${mine.length}/${ALL_RARES.length})</span></div>
-      <div class="row" style="justify-content:flex-start;gap:8px">${mine.length?mine.map(d=>`<div class="hovwrap"><div class="av sm" style="background:var(--panel2)"><img src="./${d.character_id}.png" onerror="this.style.display='none';this.parentNode.textContent='!'"></div><div class="hovtip">${esc(RARE_NAMES[d.character_id]||d.character_id)}<br>Roll #${d.won_on_roll} of ${d.roll_count}<br>${new Date(d.created_at).toLocaleString()}</div></div>`).join(''):'<span class="muted small">none yet</span>'}</div></div>`;}).join('')}
+      return `<div style="margin-bottom:12px"><div style="font-weight:700;color:${p.color};margin-bottom:6px">${esc(p.name)} <span class="muted small">(${mine.length}/${ALL_RARES.length+ALL_RARE_CURSOR_IDS.length})</span></div>
+      <div class="row" style="justify-content:flex-start;gap:8px">${mine.length?mine.map(d=>`<div class="hovwrap"><div class="av sm" style="background:var(--panel2)">${dropVisual(d.character_id)}</div><div class="hovtip">${esc(dropName(d.character_id))}<br>Roll #${d.won_on_roll} of ${d.roll_count}<br>${new Date(d.created_at).toLocaleString()}</div></div>`).join(''):'<span class="muted small">none yet</span>'}</div></div>`;}).join('')}
   </div>
   <div class="card" style="margin-top:14px"><h3 style="margin-bottom:12px">Recent drops</h3>
     ${(allDrops||[]).length?(allDrops).slice(0,25).map(d=>{const p=profById(d.profile_id);return `<div class="dropfeed-item">
-      <div class="av sm" style="background:var(--panel2)"><img src="./${d.character_id}.png" onerror="this.style.display='none';this.parentNode.textContent='!'"></div>
-      <span><b style="color:${p?p.color:'#fff'}">${esc(p?p.name:'?')}</b> unlocked <b style="color:var(--gold)">${esc(RARE_NAMES[d.character_id]||d.character_id)}</b> on roll #${d.won_on_roll}</span>
+      <div class="av sm" style="background:var(--panel2)">${dropVisual(d.character_id)}</div>
+      <span><b style="color:${p?p.color:'#fff'}">${esc(p?p.name:'?')}</b> unlocked <b style="color:var(--gold)">${esc(dropName(d.character_id))}</b> on roll #${d.won_on_roll}</span>
       <span class="muted small" style="margin-left:auto">${new Date(d.created_at).toLocaleDateString()}</span></div>`;}).join(''):'<div class="muted small">No drops yet. Win games to roll.</div>'}
   </div>`;
 }
 
-/* ---- CONFETTI ---- */
-function fireConfetti(){
-  const c=$('#confetti'),x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;
-  const cols=['#f06b9a','#5b8def','#9d6fd9','#f5c451','#7fe0a3'];
-  let bits=Array.from({length:140},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height,
-    s:4+Math.random()*6,vy:2+Math.random()*4,vx:-2+Math.random()*4,col:cols[Math.floor(Math.random()*cols.length)],r:Math.random()*6}));
-  let frames=0;
-  (function loop(){x.clearRect(0,0,c.width,c.height);bits.forEach(b=>{b.x+=b.vx;b.y+=b.vy;b.r+=.1;
-    x.save();x.translate(b.x,b.y);x.rotate(b.r);x.fillStyle=b.col;x.fillRect(-b.s/2,-b.s/2,b.s,b.s);x.restore();});
-    frames++;if(frames<200)requestAnimationFrame(loop);else x.clearRect(0,0,c.width,c.height);})();
+/* ---- CELEBRATION ENGINE (fireworks + trumpets + confetti, sound-ready) ---- */
+function prefersReducedMotion(){ return window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches; }
+/* sound hooks: intentionally silent. Wire audio here later (winner profile + round index available). */
+function playWinSound(/*winnerProfile*/_w,/*ri*/_ri){ /* TODO audio: fanfare keyed to winner.win_anim */ }
+function playGauntletSound(){ /* TODO audio: end-of-gauntlet fanfare */ }
+function flashScoreboard(winners){
+  const g=S.gauntlet; if(!g) return;
+  g.player_ids.forEach(pid=>{ const el=document.getElementById('sb-'+pid); if(!el)return;
+    const cls=winners.includes(pid)?'flash-win':'flash-lose';
+    el.classList.add(cls); setTimeout(()=>el.classList.remove('flash-win','flash-lose'),1500);
+  });
 }
+function celebrateRound(ri){
+  const g=S.gauntlet; if(!g) return; const gid=g.game_ids[ri]; if(!gid) return;
+  const winners=roundWinners(ri,gid);
+  if(!winners.length) return;
+  flashScoreboard(winners);                 // base: winner green, losers red, 1.5s
+  if(prefersReducedMotion()) return;
+  let any=false;
+  winners.forEach(pid=>{ const p=profById(pid);
+    if(p&&p.win_anim){ fireworksOn(document.getElementById('fx-'+pid), winAnimById(p.win_anim).colors); any=true; }
+  });
+  if(any){
+    const lead=profById(winners[0]);
+    trumpetsIn(); burstConfetti(lead&&lead.win_anim?winAnimById(lead.win_anim).colors:null);
+    playWinSound(lead||null,ri);
+  }
+}
+function fireworksOn(container,palette){
+  if(!container) return;
+  const r=container.getBoundingClientRect();
+  const c=document.createElement('canvas');
+  c.width=Math.max(60,Math.round(r.width)); c.height=Math.max(60,Math.round(r.height));
+  c.style.width='100%'; c.style.height='100%';
+  container.innerHTML=''; container.appendChild(c);
+  const x=c.getContext('2d');
+  let parts=[]; let bursts=0; const maxBursts=3;
+  function spawn(){
+    const cx=c.width*(0.28+Math.random()*0.44), cy=c.height*(0.28+Math.random()*0.44);
+    const col=palette[Math.floor(Math.random()*palette.length)];
+    const n=16+Math.floor(Math.random()*12);
+    for(let i=0;i<n;i++){const a=(Math.PI*2*i)/n+Math.random()*0.2; const sp=1+Math.random()*2.6;
+      parts.push({x:cx,y:cy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,col});}
+    bursts++;
+  }
+  const t0=performance.now(); let last=t0; spawn();
+  (function loop(now){
+    const dt=Math.min(2.4,(now-last)/16.7); last=now;
+    x.clearRect(0,0,c.width,c.height);
+    for(const p of parts){ p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=0.045*dt; p.vx*=0.99; p.life-=0.016*dt;
+      if(p.life>0){ x.globalAlpha=Math.max(0,p.life); x.fillStyle=p.col; x.fillRect(p.x,p.y,2.6,2.6); } }
+    x.globalAlpha=1; parts=parts.filter(p=>p.life>0);
+    const elapsed=now-t0;
+    if(bursts<maxBursts && elapsed>bursts*480) spawn();
+    if(elapsed<2600||parts.length) requestAnimationFrame(loop);
+    else container.innerHTML='';
+  })(t0);
+}
+function trumpetSVG(){
+  return `<svg viewBox="0 0 130 84" xmlns="http://www.w3.org/2000/svg"><g fill="#f5c451" stroke="#a8801e" stroke-width="2.5" stroke-linejoin="round">
+    <path d="M10 42 L74 24 Q98 17 120 6 Q113 42 120 78 Q98 67 74 60 L10 42 Z"/>
+    <rect x="2" y="34" width="12" height="16" rx="3"/></g>
+    <g fill="#fff4cf"><circle cx="48" cy="38" r="3.2"/><circle cx="64" cy="34" r="3.2"/><circle cx="80" cy="30" r="3.2"/></g></svg>`;
+}
+function trumpetsIn(){
+  const reduce=prefersReducedMotion();
+  ['l','r'].forEach(side=>{
+    const d=document.createElement('div'); d.className='trumpet '+side; d.innerHTML=trumpetSVG();
+    document.body.appendChild(d); void d.offsetWidth; d.classList.add('in');
+    setTimeout(()=>{ d.classList.remove('in'); setTimeout(()=>d.remove(),650); }, reduce?900:1700);
+  });
+}
+function confettiBurst(cols,count,frames){
+  const c=$('#confetti'); if(!c) return; const x=c.getContext('2d'); c.width=innerWidth; c.height=innerHeight;
+  let bits=Array.from({length:count},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height,
+    s:4+Math.random()*6,vy:2+Math.random()*4,vx:-2+Math.random()*4,col:cols[Math.floor(Math.random()*cols.length)],r:Math.random()*6}));
+  let f=0;
+  (function loop(){ x.clearRect(0,0,c.width,c.height); bits.forEach(b=>{b.x+=b.vx;b.y+=b.vy;b.r+=.1;
+    x.save();x.translate(b.x,b.y);x.rotate(b.r);x.fillStyle=b.col;x.fillRect(-b.s/2,-b.s/2,b.s,b.s);x.restore();});
+    f++; if(f<frames)requestAnimationFrame(loop); else x.clearRect(0,0,c.width,c.height); })();
+}
+function burstConfetti(palette){ confettiBurst(palette&&palette.length?palette:['#f06b9a','#5b8def','#9d6fd9','#f5c451','#7fe0a3'],90,150); }
+function fireConfetti(){ playGauntletSound(); confettiBurst(['#f06b9a','#5b8def','#9d6fd9','#f5c451','#7fe0a3'],160,210); if(!prefersReducedMotion()) trumpetsIn(); }
 
 /* ============ BOOT ============ */
-(async function(){ await loadCore(); if(S.me&&S.me.cursor) applyCursorCSS(S.me.cursor); if(S.me&&S.me.theme) applyThemeCSS(S.me.theme); landing(); })();
+(async function(){ await loadCore(); await loadBadges(); if(S.me&&S.me.cursor) applyCursorCSS(S.me.cursor); if(S.me&&S.me.theme) applyThemeCSS(S.me.theme); landing(); })();
 </script>
 </body>
 </html>
