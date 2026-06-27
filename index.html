@@ -64,6 +64,7 @@ input:focus,select:focus{outline:2px solid var(--purple);border-color:var(--purp
 .av{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-family:var(--pixel);font-size:20px;color:#fff;image-rendering:pixelated;border:3px solid rgba(255,255,255,.25);}
 .av.sm{width:34px;height:34px;font-size:11px;border-width:2px;}
+.av.md{width:50px;height:50px;font-size:16px;}
 .av.lg{width:96px;height:96px;font-size:26px;}
 .av img{width:100%;height:100%;border-radius:50%;image-rendering:pixelated;object-fit:cover;}
 /* character grid */
@@ -190,13 +191,22 @@ canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:90;}
 
 /* ---- board layout: sticky scoreboard ribbon + rounds grid + chat ---- */
 .wideapp .app{max-width:1400px;}
-.sbribbon{position:sticky;top:64px;z-index:20;display:flex;gap:10px;justify-content:center;overflow-x:auto;overflow-y:visible;
-  padding:10px 2px;margin-bottom:14px;background:linear-gradient(var(--bg),var(--bg) 72%,transparent);}
+.sbribbon{position:sticky;top:64px;z-index:20;display:flex;flex-wrap:wrap;gap:14px;justify-content:center;overflow:visible;
+  padding:12px 2px;margin-bottom:14px;background:linear-gradient(var(--bg),var(--bg) 72%,transparent);}
 .boardmain{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start;}
 .rounds-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;min-width:0;align-items:start;}
 .rounds-grid .gblock{margin-bottom:0;}
 .rounds-grid .gblock.wide{grid-column:1 / -1;}
 .rounds-grid .gtable{display:block;overflow-x:auto;}
+.rounds-grid .gtable th,.rounds-grid .gtable td{padding:8px 6px;font-size:17px;}
+.rounds-grid .gtable th{white-space:normal;line-height:1.15;}
+.rounds-grid .gtable th.pl,.rounds-grid .gtable td.pl{padding-left:10px;}
+.rounds-grid .gtable input[type=number]{width:58px;font-size:19px;padding:9px 5px;}
+.rounds-grid .gtable .sc{font-size:24px;}
+/* multi-match blocks (LoL, Fortnite) carry the most columns: compact them so they don't scroll */
+.rounds-grid .gblock.wide .gtable th,.rounds-grid .gblock.wide .gtable td{padding:7px 4px;font-size:16px;}
+.rounds-grid .gblock.wide .gtable input[type=number]{width:50px;font-size:18px;padding:8px 4px;}
+.rounds-grid .gblock.wide .gtable input[type=checkbox]{width:18px;height:18px;}
 .chat-col{position:sticky;top:130px;height:calc(100vh - 150px);}
 .chat-col .chatdock{height:100%;background:var(--bg2);border:2px solid var(--line);border-radius:16px;display:flex;flex-direction:column;overflow:hidden;}
 .iconbtn.txt{font-size:15px;font-weight:700;white-space:nowrap;}
@@ -205,22 +215,42 @@ canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:90;}
   .rounds-grid{grid-template-columns:1fr;}
   .chat-col{display:none;}
   .sbribbon{top:60px;justify-content:flex-start;}
+  .sbcard{flex:1 1 100%;max-width:none;min-width:0;}
 }
 
 /* ---- scoreboard bubble (one per player, animation-ready) ---- */
-.sbcard{position:relative;flex:0 1 300px;min-width:200px;max-width:360px;border:2px solid var(--line);border-radius:14px;
-  padding:10px 12px;background:var(--bg2);overflow:visible;transition:box-shadow .25s,background .25s;}
-.sbcard .np{position:absolute;inset:0;z-index:0;opacity:.5;border-radius:12px;}
+.sbcard{position:relative;flex:1 1 340px;min-width:250px;max-width:540px;border:2px solid var(--line);border-radius:16px;
+  padding:14px 20px;background:var(--bg2);overflow:visible;transition:box-shadow .25s,background .25s,transform .25s,filter .25s;}
+.sbcard .np{position:absolute;inset:0;z-index:0;opacity:.5;border-radius:14px;}
 .sbcard .npc{position:relative;z-index:1;}
 .sbcard.lead{box-shadow:0 0 0 2px var(--gold) inset;}
 .sbcard.flash-win{box-shadow:0 0 0 3px var(--green) inset;background:rgba(127,224,163,.20);}
 .sbcard.flash-lose{box-shadow:0 0 0 3px var(--red) inset;background:rgba(192,42,68,.16);}
-.sbcard .sb-top{display:flex;align-items:center;gap:10px;}
-.sbcard .sb-mid{min-width:0;display:flex;flex-direction:column;}
-.sbcard .sb-name{font-weight:800;font-size:18px;display:flex;align-items:center;gap:4px;text-shadow:0 1px 3px rgba(0,0,0,.6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.sbcard .sb-tot{font-family:var(--pixel);font-size:22px;margin-left:auto;text-shadow:0 1px 3px rgba(0,0,0,.6);}
-.sbcard .gems{margin-top:4px;}
-.sbcard .leadtag{margin-left:6px;}
+.sbcard.anim-win{animation:sbWin .7s cubic-bezier(.2,.9,.3,1.3);}
+.sbcard.anim-lose{animation:sbLose .6s ease;filter:saturate(.45) brightness(.9);}
+.sbcard.anim-record{box-shadow:0 0 0 3px var(--gold) inset,0 0 30px rgba(245,196,81,.6);background:rgba(245,196,81,.15);}
+@keyframes sbWin{0%{transform:scale(1)}28%{transform:scale(1.05)}55%{transform:scale(.99)}100%{transform:scale(1)}}
+@keyframes sbLose{0%,100%{transform:translateX(0)}18%{transform:translateX(-5px)}38%{transform:translateX(5px)}58%{transform:translateX(-3px)}78%{transform:translateX(2px)}}
+.sbcard .sb-top{display:flex;align-items:center;gap:14px;}
+.sbcard .sb-mid{min-width:0;flex:1;display:flex;flex-direction:column;gap:3px;}
+.sbcard .sb-name{font-weight:800;font-size:23px;display:flex;align-items:center;gap:5px;text-shadow:0 1px 3px rgba(0,0,0,.6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sbcard .sb-right{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none;}
+.sbcard .sb-tot{font-family:var(--pixel);font-size:30px;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,.6);}
+.sbcard .gems{margin-top:1px;}
+.sbcard .gems:empty{display:none;}
+.sbcard .gem{width:15px;height:15px;}
+.sbcard .leadtag{font-size:13px;}
+.lose-puff{position:absolute;left:30px;top:2px;width:18px;height:18px;border-radius:50%;z-index:6;pointer-events:none;opacity:0;
+  background:radial-gradient(circle,#9aa0b5,#6b7088);animation:puffRise .95s ease forwards;}
+@keyframes puffRise{0%{opacity:0;transform:translateY(2px) scale(.5)}30%{opacity:.7}100%{opacity:0;transform:translateY(-30px) scale(1.4)}}
+.sbcard .crown{position:absolute;top:-30px;left:50%;transform:translateX(-50%) translateY(8px) scale(.6);opacity:0;z-index:8;
+  transition:transform .45s cubic-bezier(.2,.9,.3,1.5),opacity .35s;pointer-events:none;}
+.sbcard .crown.in{transform:translateX(-50%) translateY(0) scale(1);opacity:1;}
+.sbcard .hsbanner{position:absolute;left:50%;bottom:-13px;transform:translateX(-50%) translateY(6px);opacity:0;z-index:8;
+  font-family:var(--pixel);font-size:11px;color:#3a2700;background:linear-gradient(90deg,#ffd24a,#f5c451);
+  padding:5px 12px;border-radius:20px;white-space:nowrap;box-shadow:0 4px 16px rgba(245,196,81,.55);
+  transition:transform .4s cubic-bezier(.2,.9,.3,1.5),opacity .3s;pointer-events:none;}
+.sbcard .hsbanner.in{transform:translateX(-50%) translateY(0);opacity:1;}
 .winfx{position:absolute;left:-6%;right:-6%;top:-65%;height:170%;z-index:5;pointer-events:none;}
 .medal{display:inline-flex;vertical-align:middle;}
 
@@ -406,7 +436,7 @@ function scaled(gameId, raw, meta, handicap){
 }
 
 /* ============ STATE ============ */
-const S={ me:null, profiles:[], defs:[], gauntlet:null, scores:[], chan:null, myDrops:[], chat:[], badges:{} };
+const S={ me:null, profiles:[], defs:[], gauntlet:null, scores:[], chan:null, myDrops:[], chat:[], badges:{}, gameBest:{} };
 const $=sel=>document.querySelector(sel);
 const app=$('#app');
 function toast(m){let t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2200);}
@@ -448,13 +478,14 @@ async function loadMyDrops(){
 }
 /* aggregate best single-round scores per game -> each player's best medal (rank 1/2/3) */
 async function loadBadges(){
-  S.badges={};
+  S.badges={}; S.gameBest={};
   const {data}=await sb.from('scores').select('profile_id,game_id,scaled');
   if(!data) return;
   const byGame={};
   data.forEach(r=>{ if(r.scaled==null||r.scaled<=0)return; (byGame[r.game_id]=byGame[r.game_id]||[]).push(r); });
   Object.entries(byGame).forEach(([gid,rows])=>{
     rows.sort((a,b)=>b.scaled-a.scaled);
+    S.gameBest[gid]=rows[0].scaled;
     rows.slice(0,3).forEach((r,i)=>{ const rank=i+1; const cur=S.badges[r.profile_id];
       if(!cur||rank<cur.rank) S.badges[r.profile_id]={rank,game:gid,score:r.scaled}; });
   });
@@ -1102,9 +1133,9 @@ function boardScreen(){
   <div class="row" style="margin:18px 0 50px"><button class="btn gold lg" id="finBtn" onclick="finishGauntlet()">Finish gauntlet</button></div>`;
   renderChat();
 }
-const ICON_SHOP=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>`;
+const ICON_SHOP=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1.1 11.2a2 2 0 0 1-2 1.8H9.1a2 2 0 0 1-2-1.8L6 8Z"/><path d="M9 8V6.2a3 3 0 0 1 6 0V8"/></svg>`;
 const ICON_GEAR=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>`;
-const ICON_COIN=`<svg width="16" height="16" viewBox="0 0 24 24" fill="var(--gold)" stroke="#a8801e" stroke-width="1.5"><circle cx="12" cy="12" r="9"/></svg>`;
+const ICON_COIN=`<svg width="16" height="16" viewBox="0 0 24 24" stroke="#243f7a" stroke-width="1" stroke-linejoin="round"><path d="M5 3h14l3 5-13 13L2 8 5 3Z" fill="#5b8def"/><path d="M5 3l4 5L2 8 5 3Z" fill="#9dc0ff"/><path d="M19 3l-4 5h7l-3-5Z" fill="#9dc0ff"/><path d="M9 8h6l-3 13-3-13Z" fill="#3f6fd6"/><path d="M2 8h7l3 13L2 8Z" fill="#4a7ae0"/><path d="M15 8h7L12 21l3-13Z" fill="#3a64c8"/></svg>`;
 const ICON_PENCIL=`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`;
 function ribbonHeader(isHost,coins){
   const g=S.gauntlet;
@@ -1123,7 +1154,7 @@ function ribbonHeader(isHost,coins){
     </div>
   </div>`;
 }
-function gemsHtml(p,n){ return n?Array.from({length:n}).map(()=>`<span class="gem" style="background:${p.color}"></span>`).join(''):'<span class="muted small">no rounds won</span>'; }
+function gemsHtml(p,n){ return n?Array.from({length:n}).map(()=>`<span class="gem" style="background:${p.color}"></span>`).join(''):''; }
 function medalSVG(rank,gameId){
   const col=rank===1?'#f5c451':rank===2?'#cfd4dd':'#cd8b54';
   const dn=(defById(gameId)||{}).name||gameId;
@@ -1143,13 +1174,15 @@ function scoreBubble(p,t,w,maxTot){
   const np=nameplateCSS(p.nameplate,p.color);
   return `<div class="sbcard ${lead?'lead':''}" id="sb-${p.id}">
     <div class="np" style="background:${np}"></div>
-    <div class="npc">
-      <div class="sb-top">${avatar(p,'sm')}
-        <div class="sb-mid">
-          <div class="sb-name" style="color:${p.color}">${esc(p.name)}${badgeHtml(p.id)}</div>
-          <div class="gems">${gemsHtml(p,w[p.id]||0)}</div>
-        </div>
-        <span class="sb-tot" style="color:${p.color}">${t[p.id]||0}${lead?' <span class="leadtag">LEAD</span>':''}</span>
+    <div class="npc sb-top">
+      ${avatar(p,'md')}
+      <div class="sb-mid">
+        <div class="sb-name" style="color:${p.color}">${esc(p.name)}${badgeHtml(p.id)}</div>
+        <div class="gems">${gemsHtml(p,w[p.id]||0)}</div>
+      </div>
+      <div class="sb-right">
+        <span class="sb-tot" style="color:${p.color}">${t[p.id]||0}</span>
+        ${lead?'<span class="leadtag">LEAD</span>':''}
       </div>
     </div>
     <div class="winfx" id="fx-${p.id}"></div>
@@ -1349,7 +1382,12 @@ function refreshBoardLive(){
     const card=document.getElementById('sb-'+pid); if(!card)return;
     const pr=profById(pid); const lead=t[pid]===maxTot&&maxTot>0;
     card.classList.toggle('lead',lead);
-    const tot=card.querySelector('.sb-tot'); if(tot)tot.innerHTML=(t[pid]||0)+(lead?' <span class="leadtag">LEAD</span>':'');
+    const tot=card.querySelector('.sb-tot'); if(tot)tot.textContent=(t[pid]||0);
+    const right=card.querySelector('.sb-right'); if(right){
+      let lt=right.querySelector('.leadtag');
+      if(lead&&!lt){ lt=document.createElement('span'); lt.className='leadtag'; lt.textContent='LEAD'; right.appendChild(lt); }
+      else if(!lead&&lt){ lt.remove(); }
+    }
     const gems=card.querySelector('.gems'); if(gems&&pr)gems.innerHTML=gemsHtml(pr,w[pid]||0);
   });
   document.querySelectorAll('.rounds-grid .gblock').forEach((block,ri)=>{
@@ -1394,7 +1432,7 @@ function openShop(tab){
   const myCoins=S.me?S.me.coins||0:0; const myOwned=(S.me&&S.me.owned)||[];
   app.innerHTML=`<div class="topbar"><button class="btn ghost sm" onclick="${g?'boardScreen()':"go('landing')"}">&larr; ${g?'Board':'Home'}</button>
     <div class="pixel" style="font-size:18px"><img src="rz_logo.png" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:8px">SHOP</div>
-    <span style="color:var(--gold);font-weight:700;font-size:20px">${myCoins} coins</span></div>
+    <span style="color:#7fb0ff;font-weight:700;font-size:20px;display:inline-flex;align-items:center;gap:6px">${ICON_COIN} ${myCoins} gems</span></div>
   <div class="tabs">
     ${g?`<button class="tab ${t==='powerups'?'on':''}" onclick="openShop('powerups')">Power-ups</button>`:''}
     <button class="tab ${t==='chars'?'on':''}" onclick="openShop('chars')">Characters</button>
@@ -1411,7 +1449,7 @@ function openShop(tab){
     :t==='anims'?shopAnims(myOwned,myCoins)
     :shopThemes(myOwned,myCoins)
   }</div>
-  <div class="muted small" style="margin:16px 0 40px;text-align:center">Coins = your winning margin. Win by 300, earn 300.</div>
+  <div class="muted small" style="margin:16px 0 40px;text-align:center">Gems = your winning margin. Win by 300, earn 300.</div>
   <div id="shopModal"></div>`;
 }
 function shopPowerups(g,myCoins){
@@ -1431,7 +1469,7 @@ function shopPowerups(g,myCoins){
   </div>`;
 }
 function shopChars(myOwned,myCoins){
-  return `<div class="card"><h3 style="margin-bottom:4px">Characters <span class="muted small">250 coins</span></h3>
+  return `<div class="card"><h3 style="margin-bottom:4px">Characters <span class="muted small">250 gems</span></h3>
     <div class="muted small" style="margin-bottom:12px">Extra icons you can switch to from Change icon.</div>
     <div class="shop-grid">${SHOP_CHARS.map(c=>{const owned=myOwned.includes(c.id);
       return `<div class="shop-tile ${owned?'active':''}">
@@ -1453,7 +1491,7 @@ function shopCursors(myOwned,myCoins){
         :`<button class="btn sm gold" ${myCoins<c.cost?'disabled':''} onclick="buyCursor('${c.id}','${c.name}',${c.cost})">${c.cost}</button>`}
     </div>`;
   };
-  return `<div class="card"><h3 style="margin-bottom:4px">Cursors <span class="muted small">500 coins</span></h3>
+  return `<div class="card"><h3 style="margin-bottom:4px">Cursors <span class="muted small">500 gems</span></h3>
     <div class="muted small" style="margin-bottom:12px">Buy what you like. Rare cursors only drop from gauntlet wins (1 in 200).</div>
     <div class="shop-grid">${CURSORS.map(c=>tile(c,false)).join('')}</div>
     <h3 style="margin:16px 0 4px">Rare cursors</h3>
@@ -1466,7 +1504,7 @@ function shopPlates(myOwned,myCoins){
   const myColor=S.me?S.me.color:'#f06b9a';
   const presets=NAMEPLATE_PRESETS.map(c=>{const val='solid:'+c; const on=cur===val||(!cur&&c===myColor);
     return `<span class="${on?'on':''}" style="background:${c}" onclick="applyNameplate('${val}')" title="${c}"></span>`;}).join('');
-  return `<div class="card"><h3 style="margin-bottom:4px">Nameplates <span class="muted small">500 coins</span></h3>
+  return `<div class="card"><h3 style="margin-bottom:4px">Nameplates <span class="muted small">500 gems</span></h3>
     <div class="muted small" style="margin-bottom:12px">The card behind your name on the scoreboard. Patterns tint to your color.</div>
     <div class="shop-tile ${!cur||cur.startsWith('solid:')?'active':''}" style="align-items:stretch;margin-bottom:14px">
       <div class="np-prev" style="background:${nameplateCSS(cur&&cur.startsWith('solid:')?cur:null,myColor)}"></div>
@@ -1489,7 +1527,7 @@ function shopAnims(myOwned,myCoins){
     <div class="small muted">Winner green, losers red</div>
     ${cur===''?'<div class="small" style="color:var(--gold)">active</div>':`<button class="btn sm" onclick="applyWinAnim('')">Use</button>`}
   </div>`;
-  return `<div class="card"><h3 style="margin-bottom:4px">Win animations <span class="muted small">800 coins</span></h3>
+  return `<div class="card"><h3 style="margin-bottom:4px">Win animations <span class="muted small">800 gems</span></h3>
     <div class="muted small" style="margin-bottom:12px">Plays on your scoreboard bubble when you win a round. Fireworks, trumpets, confetti. Default is a quick green/red flash.</div>
     <div class="shop-grid">${def}${WIN_ANIMS.map(a=>{const owned=myOwned.includes(a.id); const active=cur===a.id;
       const dots=a.colors.slice(0,6).map(c=>`<span class="anim-dot" style="background:${c}"></span>`).join('');
@@ -1502,7 +1540,7 @@ function shopAnims(myOwned,myCoins){
       </div>`;}).join('')}</div></div>`;
 }
 function shopThemes(myOwned,myCoins){
-  return `<div class="card"><h3 style="margin-bottom:4px">Themes <span class="muted small">1000 coins</span></h3>
+  return `<div class="card"><h3 style="margin-bottom:4px">Themes <span class="muted small">1000 gems</span></h3>
     <div class="muted small" style="margin-bottom:12px">Recolors the whole app. One distinct hue each.</div>
     <div class="shop-grid">${THEMES.map(t=>{const owned=myOwned.includes(t.id); const active=S.me&&S.me.theme===t.id;
       const sw=[t.vars['--pink'],t.vars['--blue'],t.vars['--purple'],t.vars['--bg2']].filter(Boolean);
@@ -1567,7 +1605,7 @@ function roundSummary(ri){
 }
 async function spendCoins(amount){
   if(!S.me) return false; const cur=S.me.coins||0;
-  if(cur<amount){toast('Not enough coins');return false;}
+  if(cur<amount){toast('Not enough gems');return false;}
   const nc=cur-amount;
   await sb.from('profiles').update({coins:nc}).eq('id',S.me.id);
   S.me.coins=nc; const i=S.profiles.findIndex(p=>p.id===S.me.id); if(i>=0)S.profiles[i].coins=nc;
@@ -1633,7 +1671,7 @@ async function shopRerollAll(type){
       <div>${pl.map(d=>`<button class="btn sm" style="margin:4px" onclick="addPick('${d.id}','${esc(d.name)}')">${esc(d.name)}</button>`).join('')}</div>
       <div class="muted small" style="margin-top:8px">Picked: <span id="pickCount">0</span>/${g.game_ids.length}</div>`);
   } else {
-    if(!confirm('Re-roll entire gauntlet randomly for '+cost+' coins?')) return;
+    if(!confirm('Re-roll entire gauntlet randomly for '+cost+' gems?')) return;
     if(!await spendCoins(cost)) return;
     const pool=S.defs.filter(d=>g.include_switch||!d.is_switch);
     const shuffled=[...pool].sort(()=>Math.random()-.5).slice(0,g.game_ids.length).map(d=>d.id);
@@ -1663,7 +1701,7 @@ async function spendShot(){
   if(!await spendCoins(COINS.shot)) return;
   toast(esc(target.name)+' owes a shot!');
   if(S.gauntlet){
-    await sb.from('chat').insert({gauntlet_id:S.gauntlet.id,profile_id:S.me.id,msg:'gave '+target.name+' a shot! ('+COINS.shot+' coins)'});
+    await sb.from('chat').insert({gauntlet_id:S.gauntlet.id,profile_id:S.me.id,msg:'gave '+target.name+' a shot! ('+COINS.shot+' gems)'});
   }
 }
 async function persistGames(){ await sb.from('gauntlets').update({game_ids:S.gauntlet.game_ids}).eq('id',S.gauntlet.id); }
@@ -1767,8 +1805,9 @@ async function finishGauntlet(){
   if(!hasAny) return toast('Enter scores for at least one game first');
   const btn=document.getElementById('finBtn'); if(btn){btn.disabled=true;btn.textContent='Finishing...';}
   const t=totals(),w=roundsWon();
-  let max=-1,winner=null,tie=false;
-  g.player_ids.forEach(p=>{if(t[p]>max){max=t[p];winner=p;tie=false;}else if(t[p]===max)tie=true;});
+  const rk0=[...g.player_ids].sort((a,b)=>(t[b]||0)-(t[a]||0));
+  const tie=rk0.length>1 && (t[rk0[0]]||0)===(t[rk0[1]]||0);
+  const winner=tie?null:rk0[0];
   const roundWinnersArr=g.game_ids.map((gid,ri)=>roundWinners(ri,gid));
   const perGame={}; g.game_ids.forEach((gid,ri)=>{if(roundWinnersArr[ri].length===1)perGame[gid]=roundWinnersArr[ri][0];});
   await sb.from('results').insert({gauntlet_id:g.id,title:g.title,winner_id:tie?null:winner,
@@ -1782,7 +1821,7 @@ async function finishGauntlet(){
     const pr=profById(winner); const nc=(pr.coins||0)+margin;
     await sb.from('profiles').update({coins:nc}).eq('id',winner);
     pr.coins=nc; if(S.me&&S.me.id===winner) S.me.coins=nc;
-    toast(esc(pr.name)+' earned '+margin+' coins');
+    toast(esc(pr.name)+' earned '+margin+' gems');
   }
   await loadBadges();
   go('result');
@@ -1814,7 +1853,7 @@ function resultScreen(){
     <button class="btn ghost lg" onclick="go('landing')">Quit</button>
   </div>
   <div class="row" style="margin-top:14px;margin-bottom:40px">
-    ${topTie?'':`<button class="btn lg" style="background:var(--red)" onclick="proposeSD()">Sudden Death</button>`}
+    <button class="btn lg" style="background:var(--red)" onclick="proposeSD()">Sudden Death</button>
   </div>
   <div id="sdMount"></div>`;
   watchSD();
@@ -1846,7 +1885,7 @@ function renderSD(){
   if(sd.state==='proposed'){
     body=`<div class="pixel" style="font-size:16px;color:#fff;margin-bottom:14px">SUDDEN DEATH</div>
       <p>${esc(initiator?initiator.name:'Someone')} has called sudden death.</p>
-      <p class="small muted">Winner <strong style="color:${winnerP.color}">${esc(winnerP.name)}</strong> starts the final round with a <strong>${sd.headstart}</strong> point head start (half the ${sd.margin} margin). The loser buys dinner.</p>
+      <p class="small muted">${sd.headstart>0?`Leader <strong style="color:${winnerP.color}">${esc(winnerP.name)}</strong> starts the final round with a <strong>${sd.headstart}</strong> point head start (half the ${sd.margin} margin).`:`Dead heat, so no head start. Highest score takes it.`} The round score is added to the gauntlet total, so it decides the whole thing. Loser buys dinner.</p>
       <p class="small">Everyone must opt in or it's off.</p>
       <div class="row" style="margin-top:16px">
         <button class="btn gold lg" onclick="voteSD(true)" ${myVote!==undefined?'disabled':''}>Accept</button>
@@ -1899,21 +1938,61 @@ let sdTimer;
 async function setSDRaw(pid,key,val){const sd={...S.gauntlet.sd};sd.scores={...sd.scores};sd.scores[pid]={...(sd.scores[pid]||{}),[key]:val};
   S.gauntlet.sd=sd; sdRoundScreen(); clearTimeout(sdTimer);
   sdTimer=setTimeout(()=>sb.from('gauntlets').update({sd}).eq('id',S.gauntlet.id),400);}
+/* winner + margin (top minus second) from a totals map; winner null on an exact top tie */
+function leaderMargin(tmap, ids){
+  const rk=[...ids].sort((a,b)=>(tmap[b]||0)-(tmap[a]||0));
+  if(rk.length<2) return {w:rk[0]||null, m:(tmap[rk[0]]||0)};
+  const tie=(tmap[rk[0]]||0)===(tmap[rk[1]]||0);
+  return {w:tie?null:rk[0], m:(tmap[rk[0]]||0)-(tmap[rk[1]]||0)};
+}
+async function adjustCoins(pid, delta){
+  if(!pid||!delta) return;
+  const pr=profById(pid); if(!pr) return;
+  const nc=Math.max(0,(pr.coins||0)+delta);
+  await sb.from('profiles').update({coins:nc}).eq('id',pid);
+  pr.coins=nc; if(S.me&&S.me.id===pid) S.me.coins=nc;
+}
 async function finishSD(){
   const g=S.gauntlet,sd=g.sd;
-  let max=-1,win=null,tie=false;
-  g.player_ids.forEach(p=>{const base=scaled(sd.game,(sd.scores&&sd.scores[p.id])||{},{mode:sd.mode},sd.game==='cs2'?handicapFor(p.id):0);
-    const fin=base+(p.id===sd.winner?sd.headstart:0); if(fin>max){max=fin;win=p;tie=false;}else if(fin===max)tie=true;});
-  const sdPerGame={}; if(!tie&&win&&sd.game) sdPerGame[sd.game]=win;
-  await sb.from('results').insert({gauntlet_id:g.id,title:g.title+' (SD)',winner_id:tie?null:win,
-    totals:totals(),rounds_won:roundsWon(),per_game_winners:sdPerGame,sudden_death:true,sd_initiator:sd.initiator,sd_winner:tie?null:win});
-  processUnlocks({...g, game_ids:[sd.game]}, [tie?[]:[win]], tie?null:win);
+  const baseTot=totals();                          // regular gauntlet totals (pre-SD)
+  // SD round scores as if it were an extra round: scaled game score + headstart for the gauntlet leader
+  const sdScore={}, comb={};
+  g.player_ids.forEach(p=>{
+    const base=scaled(sd.game,(sd.scores&&sd.scores[p])||{},{mode:sd.mode},sd.game==='cs2'?handicapFor(p):0);
+    sdScore[p]=base+(p===sd.winner?(sd.headstart||0):0);
+    comb[p]=(baseTot[p]||0)+sdScore[p];
+  });
+  // whole-gauntlet winner = highest COMBINED total
+  const n=leaderMargin(comb,g.player_ids);
+  const tie=!n.w;
+  // per-game winners: regular rounds + the SD game (treated like a round)
+  const perGame={}; g.game_ids.forEach((gid,ri)=>{const ws=roundWinners(ri,gid); if(ws.length===1)perGame[gid]=ws[0];});
+  const sdg=leaderMargin(sdScore,g.player_ids); if(sdg.w&&sd.game) perGame[sd.game]=sdg.w;
+  // update THE gauntlet result row so there is one win per gauntlet, now decided by SD
+  const upd={winner_id:n.w, totals:comb, per_game_winners:perGame, sd_initiator:sd.initiator||null, sd_winner:n.w};
+  const {data:updated}=await sb.from('results').update(upd).eq('gauntlet_id',g.id).eq('sudden_death',false).select('id');
+  if(!updated||!updated.length){
+    await sb.from('results').insert({gauntlet_id:g.id,title:g.title,winner_id:n.w,totals:comb,
+      rounds_won:roundsWon(),per_game_winners:perGame,sudden_death:false,sd_initiator:sd.initiator||null,sd_winner:n.w});
+  }
+  // reconcile gems: reverse the original (pre-SD) margin award, apply the new combined margin
+  const o=leaderMargin(baseTot,g.player_ids);
+  if(o.w) await adjustCoins(o.w, -o.m);
+  if(n.w) await adjustCoins(n.w, +n.m);
+  // close SD and refresh standings
   const ndSd={...sd,state:'none'}; await sb.from('gauntlets').update({sd:ndSd}).eq('id',g.id); g.sd=ndSd;
-  const winnerP=tie?null:profById(win);
+  await loadBadges();
+  const winnerP=tie?null:profById(n.w);
+  const rk=[...g.player_ids].sort((a,b)=>comb[b]-comb[a]);
   fireConfetti();
-  app.innerHTML=`<div class="result-hero"><div class="pixel muted" style="font-size:11px;margin-bottom:14px">SUDDEN DEATH RESULT</div>
+  app.innerHTML=`<div class="result-hero"><div class="pixel muted" style="font-size:11px;margin-bottom:14px">SUDDEN DEATH &middot; FINAL</div>
     ${tie?'<div class="big" style="color:var(--gold)">TIE</div>':`${avatar(winnerP,'lg')}<div class="big" style="color:${winnerP.color};margin-top:12px">${esc(winnerP.name)} WINS</div>`}
-    <div class="muted" style="margin-top:10px">Loser buys dinner (Meal Wheel).</div></div>
+    <div class="muted" style="margin-top:10px">${tie?'Still level after sudden death.':'Decided by the sudden death round. Loser buys dinner (Meal Wheel).'}</div></div>
+    <div class="score-strip">${rk.map((p,i)=>{const pr=profById(p);return `<div class="pscore">
+      <span class="pixel" style="font-size:14px;width:24px;color:var(--gold)">${i+1}</span>${avatar(pr,'sm')}
+      <span class="nm" style="color:${pr.color}">${esc(pr.name)}</span>
+      <span class="muted small" style="margin-left:10px">+${sdScore[p]} SD</span>
+      <span class="tot" style="color:${pr.color}">${comb[p]}</span></div>`;}).join('')}</div>
     <div class="row" style="margin-top:20px;margin-bottom:40px"><button class="btn pink lg" onclick="playAgain()">Play Again</button>
     <button class="btn ghost lg" onclick="go('landing')">Quit</button></div>`;
 }
@@ -1936,7 +2015,7 @@ async function hiscoresScreen(tab){
       if(r.totals)Object.keys(r.totals).forEach(pid=>{if(played[pid]!=null)played[pid]++;});
     }
     if(r.sd_initiator)sdInit[r.sd_initiator]=(sdInit[r.sd_initiator]||0)+1;
-    if(r.sudden_death&&r.sd_winner)sdWins[r.sd_winner]=(sdWins[r.sd_winner]||0)+1;
+    if(r.sd_winner)sdWins[r.sd_winner]=(sdWins[r.sd_winner]||0)+1;
     if(r.per_game_winners)Object.entries(r.per_game_winners).forEach(([gid,pid])=>{if(perGame[gid]&&perGame[gid][pid]!=null)perGame[gid][pid]++;});
   });
   // points (running totals) overall + by game, and top-3 single scores per game
@@ -2001,25 +2080,62 @@ function playGauntletSound(){ /* TODO audio: end-of-gauntlet fanfare */ }
 function flashScoreboard(winners){
   const g=S.gauntlet; if(!g) return;
   g.player_ids.forEach(pid=>{ const el=document.getElementById('sb-'+pid); if(!el)return;
-    const cls=winners.includes(pid)?'flash-win':'flash-lose';
-    el.classList.add(cls); setTimeout(()=>el.classList.remove('flash-win','flash-lose'),1500);
+    const won=winners.includes(pid);
+    el.classList.add(won?'flash-win':'flash-lose', won?'anim-win':'anim-lose');
+    if(!won && !prefersReducedMotion()) loserPuff(el);
+    setTimeout(()=>el.classList.remove('flash-win','flash-lose','anim-win','anim-lose'),1600);
   });
+}
+function loserPuff(el){
+  const host=el.querySelector('.npc')||el;
+  const d=document.createElement('div'); d.className='lose-puff';
+  host.appendChild(d); setTimeout(()=>d.remove(),1000);
+}
+/* detect a new all-time #1 for this game (1st place only). Returns {pid,score} or null. */
+function detectRecord(ri,gid){
+  if(!S.gameBest) S.gameBest={};
+  const g=S.gauntlet; let max=-1, who=null;
+  g.player_ids.forEach(pid=>{ const v=scaledFor(ri,gid,pid); if(v>max){max=v;who=pid;} });
+  if(max<=0||who==null) return null;
+  const prev=S.gameBest[gid]||0;
+  if(max>prev){ S.gameBest[gid]=max; return {pid:who,score:max}; }
+  return null;
+}
+function crownSVG(){
+  return `<svg width="42" height="32" viewBox="0 0 48 36" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 30 L8 11 L18 22 L24 6 L30 22 L40 11 L44 30 Z" fill="#f5c451" stroke="#a8801e" stroke-width="2" stroke-linejoin="round"/>
+    <rect x="4" y="29" width="40" height="5" rx="2" fill="#e0a020" stroke="#a8801e" stroke-width="1.5"/>
+    <circle cx="24" cy="6" r="2.6" fill="#fff4cf"/><circle cx="8" cy="11" r="2.2" fill="#fff4cf"/><circle cx="40" cy="11" r="2.2" fill="#fff4cf"/></svg>`;
+}
+function recordCelebrate(pid,gid){
+  const el=document.getElementById('sb-'+pid); if(!el) return;
+  el.classList.add('anim-record');
+  if(!prefersReducedMotion()){
+    const fx=document.getElementById('fx-'+pid);
+    if(fx) fireworksOn(fx,['#ffd24a','#f5c451','#ffe88a','#fff0c0','#ffb020']);
+  }
+  const crown=document.createElement('div'); crown.className='crown'; crown.innerHTML=crownSVG(); el.appendChild(crown);
+  const ban=document.createElement('div'); ban.className='hsbanner'; ban.textContent='NEW HIGH SCORE'; el.appendChild(ban);
+  requestAnimationFrame(()=>{ crown.classList.add('in'); ban.classList.add('in'); });
+  const pr=profById(pid), dn=(defById(gid)||{}).name||gid;
+  toast('NEW HIGH SCORE — '+(pr?pr.name:'?')+' in '+dn+'!');
+  setTimeout(()=>{ crown.classList.remove('in'); ban.classList.remove('in'); el.classList.remove('anim-record');
+    setTimeout(()=>{ crown.remove(); ban.remove(); },500); }, 3300);
 }
 function celebrateRound(ri){
   const g=S.gauntlet; if(!g) return; const gid=g.game_ids[ri]; if(!gid) return;
   const winners=roundWinners(ri,gid);
-  if(!winners.length) return;
-  flashScoreboard(winners);                 // base: winner green, losers red, 1.5s
-  if(prefersReducedMotion()) return;
-  let any=false;
-  winners.forEach(pid=>{ const p=profById(pid);
-    if(p&&p.win_anim){ fireworksOn(document.getElementById('fx-'+pid), winAnimById(p.win_anim).colors); any=true; }
-  });
-  if(any){
-    const lead=profById(winners[0]);
-    trumpetsIn(); burstConfetti(lead&&lead.win_anim?winAnimById(lead.win_anim).colors:null);
-    playWinSound(lead||null,ri);
+  const rec=detectRecord(ri,gid);          // new #1 for this game?
+  if(!winners.length && !rec) return;
+  if(winners.length) flashScoreboard(winners);   // winner: green flash + pop; losers: red flash + shake + puff
+  if(!prefersReducedMotion()){
+    winners.forEach(pid=>{ const p=profById(pid); const fx=document.getElementById('fx-'+pid);
+      // owned animation uses its palette; default winners still get a card-local burst in their color
+      const palette=(p&&p.win_anim)?winAnimById(p.win_anim).colors:[p?p.color:'#7fe0a3','#ffffff','#f5c451'];
+      fireworksOn(fx,palette); playWinSound(p,ri);
+    });
   }
+  if(rec) recordCelebrate(rec.pid,gid);     // crown + banner on the record-holder's card
 }
 function fireworksOn(container,palette){
   if(!container) return;
