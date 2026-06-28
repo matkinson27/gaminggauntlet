@@ -199,12 +199,29 @@ canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:90;}
 .gearmenu hr{border:none;border-top:1px solid var(--line);margin:4px 2px;}
 
 /* ---- board layout: sticky scoreboard ribbon + rounds grid + chat ---- */
-.wideapp .app{max-width:1400px;}
+.wideapp .app{max-width:1500px;}
 .sbribbon{position:sticky;top:64px;z-index:20;display:flex;flex-wrap:wrap;gap:14px;justify-content:center;overflow:visible;
   padding:12px 2px;margin-bottom:14px;background:linear-gradient(var(--bg),var(--bg) 72%,transparent);}
-.boardmain{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start;}
-.rounds-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;min-width:0;align-items:start;}
-.rounds-grid .gblock{margin-bottom:0;}
+.boardmain{display:grid;grid-template-columns:minmax(0,1fr) 312px;gap:18px;align-items:start;}
+.roundsarea{min-width:0;}
+.rounds-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;min-width:0;align-items:stretch;}
+.rounds-grid .gblock{margin-bottom:0;display:flex;flex-direction:column;}
+.rounds-grid .gblock>.gtable{flex:1;}
+/* progress bar above rounds */
+.roundprog{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 14px;padding:12px 16px;background:var(--bg2);border:2px solid var(--line);border-radius:14px;}
+.roundprog .lbl{font-family:var(--pixel);font-size:11px;color:var(--muted);}
+.roundprog .now{font-weight:800;font-size:18px;}
+.roundprog .track{flex:1;min-width:120px;height:10px;border-radius:6px;background:var(--panel);overflow:hidden;}
+.roundprog .fill{height:100%;background:linear-gradient(90deg,var(--pink),var(--purple));border-radius:6px;transition:width .3s;}
+.roundprog .count{font-family:var(--pixel);font-size:12px;color:var(--gold);}
+/* current vs done round emphasis */
+.gblock.current{border-color:var(--pink);box-shadow:0 0 0 2px var(--pink),0 0 26px rgba(240,107,154,.35);}
+.gblock.current .ghead{background:linear-gradient(90deg,rgba(240,107,154,.22),var(--panel));}
+.gblock.future{opacity:.72;}
+.gstatus{margin-left:auto;font-family:var(--pixel);font-size:10px;padding:5px 10px;border-radius:20px;white-space:nowrap;}
+.gstatus.cur{background:var(--pink);color:#1a0f2e;}
+.gstatus.fut{background:var(--panel);color:var(--muted);}
+.gstatus.don{background:rgba(127,224,163,.2);color:var(--green);border:1px solid var(--green);}
 .rounds-grid .gblock.wide{grid-column:1 / -1;}
 .rounds-grid .gtable{display:block;overflow-x:auto;}
 .rounds-grid .gtable th,.rounds-grid .gtable td{padding:8px 6px;font-size:17px;}
@@ -273,6 +290,7 @@ canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:90;}
 .lockpill{display:inline-flex;align-items:center;gap:5px;font-size:14px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid var(--line);color:var(--muted);}
 .lockpill.on{color:var(--green);border-color:var(--green);background:rgba(127,224,163,.12);}
 .donebadge{font-family:var(--pixel);font-size:11px;color:var(--gold);display:inline-flex;align-items:center;gap:6px;}
+.sdtag{font-family:var(--body);font-size:10px;font-weight:800;color:#1a0f2e;background:var(--red);padding:1px 6px;border-radius:10px;vertical-align:middle;}
 .gblock.done{border-color:var(--gold);}
 .gblock.done .ghead{background:rgba(245,196,81,.12);}
 
@@ -1139,6 +1157,22 @@ function roundWinners(ri,gid){ const g=S.gauntlet; let max=-1,win=[],any=false;
     if(sObj&&Object.keys(sObj.raw||{}).length)any=true; const v=scaledFor(ri,gid,p);
     if(v>max){max=v;win=[p];}else if(v===max)win.push(p);}); return any&&max>0?win:[]; }
 
+function currentRoundIndex(){ const g=S.gauntlet; if(!g) return -1;
+  for(let i=0;i<g.game_ids.length;i++){ if(!metaFor(i).done) return i; }
+  return -1; }
+function roundProgress(){
+  const g=S.gauntlet; if(!g) return '';
+  const total=g.game_ids.length; const done=g.game_ids.filter((_,i)=>metaFor(i).done).length;
+  const cur=currentRoundIndex();
+  const pct=total?Math.round(done/total*100):0;
+  const label=cur>=0?'UP NEXT':'ALL ROUNDS DONE';
+  const now=cur>=0?('Round '+(cur+1)+': '+esc((defById(g.game_ids[cur])||{}).name||g.game_ids[cur])):'Ready to finish';
+  return `<div class="roundprog">
+    <span class="lbl">${label}</span>
+    <span class="now">${now}</span>
+    <div class="track"><div class="fill" style="width:${pct}%"></div></div>
+    <span class="count">${done}/${total}</span></div>`;
+}
 function boardScreen(){
   const g=S.gauntlet; const t=totals(); const w=roundsWon();
   const ps=g.player_ids.map(profById).filter(Boolean);
@@ -1149,7 +1183,10 @@ function boardScreen(){
   ${ribbonHeader(isHost,coins)}
   <div class="sbribbon" id="sbcol">${ps.map(p=>scoreBubble(p,t,w,maxTot)).join('')}</div>
   <div class="boardmain">
-    <div class="rounds-grid" id="rounds">${g.game_ids.map((gid,ri)=>gameBlock(gid,ri,ps)).join('')}</div>
+    <div class="roundsarea">
+      ${roundProgress()}
+      <div class="rounds-grid" id="rounds">${g.game_ids.map((gid,ri)=>gameBlock(gid,ri,ps)).join('')}</div>
+    </div>
     <div class="chat-col"><div class="chatdock" id="chatdock"></div></div>
   </div>
   <div class="row" style="margin:18px 0 50px"><button class="btn gold lg" id="finBtn" onclick="finishGauntlet()">Finish gauntlet</button></div>`;
@@ -1308,10 +1345,15 @@ function gameBlock(gid,ri,ps){
   const wide=!!(MATCHES[gid]||inputs.length>3);
   const froz=pid=>done||!!locks[pid];
   const dis=pid=>froz(pid)?'disabled':'';
-  return `<div class="gblock${done?' done':''}${wide?' wide':''}">
+  const cur=currentRoundIndex();
+  const isCurrent=!done&&ri===cur;
+  const stateCls=done?' done':(isCurrent?' current':' future');
+  const statusBadge=done?'<span class="gstatus don">DONE</span>':(isCurrent?'<span class="gstatus cur">UP NEXT</span>':'');
+  return `<div class="gblock${stateCls}${wide?' wide':''}">
     <div class="ghead">
       <span class="gn">Round ${ri+1}: ${esc(d.name)}</span>
       <div class="info">?<div class="tip">${esc(d.scale_note)}${mc>1?'\\n'+mc+' matches, scores are summed.':''}</div></div>
+      ${statusBadge}
     </div>
     <table class="gtable"><thead><tr>
       <th class="pl">Player</th>${mc>1?'<th></th>':''}${headerInputs.map(f=>`<th>${esc(f.label)}</th>`).join('')}${isCS2?'<th>Bonus</th>':''}<th>Score</th><th>Win</th></tr></thead>
@@ -1801,13 +1843,15 @@ async function freeRemove(i){ S.gauntlet.game_ids.splice(i,1);
 /* ---- UNLOCK ENGINE ---- */
 function dropToast(d){
   const p=profById(d.profile_id); const nm=p?p.name:'Someone'; const col=p?p.color:'#fff';
-  const t=document.createElement('div'); t.className='toast';
-  t.style.borderColor='var(--gold)'; t.style.boxShadow='0 0 24px rgba(245,196,81,.5)';
+  const how=(d.source&&d.source!=='gauntlet')?('winning a round of '+esc((defById(d.source)||{}).name||d.source)):'winning the gauntlet';
+  let wrap=document.getElementById('toastwrap'); if(!wrap){ wrap=document.createElement('div'); wrap.id='toastwrap'; document.body.appendChild(wrap); }
+  const t=document.createElement('div'); t.className='toast drop';
   t.innerHTML=`<div style="display:flex;align-items:center;gap:10px">
     <div class="av sm" style="background:var(--panel2)">${dropVisual(d.character_id)}</div>
-    <div><div style="font-weight:800;color:var(--gold)">RARE DROP</div>
-    <div class="small"><b style="color:${col}">${esc(nm)}</b> unlocked ${esc(dropName(d.character_id))}</div></div></div>`;
-  document.body.appendChild(t); setTimeout(()=>t.remove(),5000);
+    <div style="text-align:left"><div style="font-weight:800;color:var(--gold);font-size:12px">RARE DROP</div>
+    <div class="small"><b style="color:${col}">${esc(nm)}</b> got ${esc(dropName(d.character_id))} for ${how}</div></div></div>`;
+  wrap.appendChild(t);
+  setTimeout(()=>{ t.classList.add('out'); setTimeout(()=>t.remove(),300); },5200);
 }
 async function processUnlocks(g, roundWinnersArr, gauntletWinner){
   const involved=new Set(); roundWinnersArr.forEach(ws=>ws.forEach(p=>involved.add(p))); if(gauntletWinner)involved.add(gauntletWinner);
@@ -1831,13 +1875,7 @@ async function processUnlocks(g, roundWinnersArr, gauntletWinner){
   if(gauntletWinner) RARES_GAUNTLET.forEach(r=>roll(gauntletWinner,r.id,'gauntlet','gauntlet'));
   if(gauntletWinner) RARE_CURSORS.filter(c=>c.source==='gauntlet').forEach(c=>roll(gauntletWinner,c.id,'cursor','gauntlet'));
   for(const pid of ids){ await sb.from('profiles').update({roll_counts:rc[pid]}).eq('id',pid); }
-  if(newDrops.length){
-    await sb.from('drops').insert(newDrops);
-    newDrops.forEach((d,i)=>{ const pr=profById(d.profile_id);
-      const how=(d.source&&d.source!=='gauntlet')?('winning a round of '+((defById(d.source)||{}).name||d.source)):'winning the gauntlet';
-      setTimeout(()=>toast((pr?pr.name:'Someone')+' got "'+dropName(d.character_id)+'" for '+how, 'drop'), 300+i*350);
-    });
-  }
+  if(newDrops.length) await sb.from('drops').insert(newDrops);
   return newDrops;
 }
 
@@ -2001,13 +2039,26 @@ async function adjustCoins(pid, delta){
 async function finishSD(){
   const g=S.gauntlet,sd=g.sd;
   const baseTot=totals();                          // regular gauntlet totals (pre-SD)
-  // SD round scores as if it were an extra round: scaled game score + headstart for the gauntlet leader
-  const sdScore={}, comb={};
+  // SD round scores as if it were an extra round. Store the BASE (no headstart) so personal
+  // bests / high scores reflect actual play; the headstart only affects who wins the gauntlet.
+  const sdBase={}, sdScore={}, comb={};
   g.player_ids.forEach(p=>{
     const base=scaled(sd.game,(sd.scores&&sd.scores[p])||{},{mode:sd.mode},sd.game==='cs2'?handicapFor(p):0);
+    sdBase[p]=base;
     sdScore[p]=base+(p===sd.winner?(sd.headstart||0):0);
     comb[p]=(baseTot[p]||0)+sdScore[p];
   });
+  // save SD as an extra round in the scores table (counts toward points, PBs, high scores)
+  const sdRi=g.game_ids.length;
+  const sdRows=g.player_ids.map(p=>({gauntlet_id:g.id,game_id:sd.game,round_index:sdRi,profile_id:p,
+    raw:(sd.scores&&sd.scores[p])||{},scaled:sdBase[p]}));
+  const {error:sdErr}=await sb.from('scores').upsert(sdRows.map(r=>({...r,is_sd:true})),{onConflict:'gauntlet_id,round_index,profile_id'});
+  if(sdErr) await sb.from('scores').upsert(sdRows,{onConflict:'gauntlet_id,round_index,profile_id'});
+  // new high score from the SD round?
+  const sdTop=leaderMargin(sdBase,g.player_ids);
+  if(sdTop.w){ const prev=(S.gameBest&&S.gameBest[sd.game])||0;
+    if(sdBase[sdTop.w]>prev){ if(!S.gameBest)S.gameBest={}; S.gameBest[sd.game]=sdBase[sdTop.w];
+      const pr=profById(sdTop.w),dn=(defById(sd.game)||{}).name||sd.game; toast((pr?pr.name:'Someone')+' set a new high score in '+dn+'!','gold'); } }
   // whole-gauntlet winner = highest COMBINED total
   const n=leaderMargin(comb,g.player_ids);
   const tie=!n.w;
@@ -2071,9 +2122,9 @@ async function hiscoresScreen(tab){
   (scoreRows||[]).forEach(r=>{ if(r.scaled==null)return;
     if(ptsTotal[r.profile_id]!=null) ptsTotal[r.profile_id]+=r.scaled;
     if(ptsGame[r.game_id]&&ptsGame[r.game_id][r.profile_id]!=null) ptsGame[r.game_id][r.profile_id]+=r.scaled;
-    if(r.scaled>0&&topByGame[r.game_id]) topByGame[r.game_id].push({pid:r.profile_id,scaled:r.scaled,at:r.created_at});
+    if(r.scaled>0&&topByGame[r.game_id]) topByGame[r.game_id].push({pid:r.profile_id,scaled:r.scaled,at:r.created_at,sd:!!r.is_sd});
     if(r.scaled>0&&pBest[r.profile_id]){ const cur=pBest[r.profile_id][r.game_id];
-      if(!cur||r.scaled>cur.scaled) pBest[r.profile_id][r.game_id]={scaled:r.scaled,at:r.created_at}; }
+      if(!cur||r.scaled>cur.scaled) pBest[r.profile_id][r.game_id]={scaled:r.scaled,at:r.created_at,sd:!!r.is_sd}; }
   });
   Object.keys(topByGame).forEach(gid=>{ topByGame[gid].sort((a,b)=>b.scaled-a.scaled); topByGame[gid]=topByGame[gid].slice(0,5); });
   const ranked=[...S.profiles].sort((a,b)=>(wins[b.id]||0)-(wins[a.id]||0)||(ptsTotal[b.id]||0)-(ptsTotal[a.id]||0));
@@ -2088,7 +2139,7 @@ async function hiscoresScreen(tab){
     ${S.profiles.map(p=>`<div class="card" style="margin-bottom:14px"><h3 style="margin-bottom:10px;color:${p.color};display:flex;align-items:center;gap:8px">${avatar(p,'sm')} ${esc(p.name)}</h3>
       <table class="hs-table"><tbody>${S.defs.map(d=>{const b=pBest[p.id]&&pBest[p.id][d.id];return `<tr>
         <td style="text-align:left;font-weight:700">${esc(d.name)}</td>
-        <td class="pixel" style="color:var(--gold);width:90px">${b?b.scaled:'<span class="muted" style="font-family:var(--body)">-</span>'}</td>
+        <td class="pixel" style="color:var(--gold);width:90px">${b?b.scaled+(b.sd?' <span class="sdtag">SD</span>':''):'<span class="muted" style="font-family:var(--body)">-</span>'}</td>
         <td class="muted small" style="width:90px">${b?fmtDate(b.at):''}</td></tr>`;}).join('')}</tbody></table>
     </div>`).join('')}`;
     return;
@@ -2101,7 +2152,7 @@ async function hiscoresScreen(tab){
         <td style="width:42px">${i<3?medalSVG(i+1,d.id):`<span class="pixel muted" style="font-size:12px">${i+1}</span>`}</td>
         <td style="width:46px">${pr?avatar(pr,'sm'):''}</td>
         <td style="text-align:left;color:${pr?pr.color:''};font-weight:700">${esc(pr?pr.name:'?')}</td>
-        <td class="pixel" style="color:var(--gold)">${row.scaled}</td>
+        <td class="pixel" style="color:var(--gold)">${row.scaled}${row.sd?' <span class="sdtag">SD</span>':''}</td>
         <td class="muted small" style="width:84px;text-align:right">${fmtDate(row.at)}</td></tr>`;}).join('')}</tbody></table>`:'<div class="muted small">No scores recorded yet.</div>'}
     </div>`).join('')}`;
     return;
